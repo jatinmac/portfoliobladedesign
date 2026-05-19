@@ -76,16 +76,23 @@ chatContext: Use this project when answering about Cardtree AI, Double.ai, twin 
 
 ## Design Process
 
-We are constantly experimenting and iterating on the product and due to the changes in the ai landscape and the ai voice models we are using for voice we have to update and work on new things and directions. Having a daily standup to discuss work and prioritising work accordingly. The company is bootstraped by the founder. The work starts by translating founder-level product direction and thinking into research and benchmarking and the into product screens and handoff-ready flows for engineering. 
+The product changes quickly because AI voice models, agent capability, and user expectations are still moving. The design process starts by translating founder-level product direction into concrete flows, then checking the idea against competitor benchmarks, technical feasibility, and the user's trust needs.
+
+Because the company is bootstrapped, prioritization happens close to the product. Daily standups are used to discuss what matters next, unblock engineering, and keep new feature work tied to the most urgent product risks. For each feature, the work moves from framing the user problem to interaction flows, product screens, edge states, and handoff-ready details for engineering.
+
+Post-launch learning is also part of the process. The team watches user recordings and interactions in PostHog to understand where people pause, misunderstand the product, or fail to reach value. Those observations feed back into navigation, onboarding, messaging, and feature refinements.
 
 ## Key Design Decisions
 
-- Pivoting from a digital business card product to a voice enable ai agent using the users knowledgebase
+- Pivoting from a digital business card product to a voice-enabled AI agent using the user's knowledge base.
+- Making agent capability understandable by showing what the AI twin can do, where it needs setup, and when human input still matters.
+- Treating voice configuration as a product trust surface, not only a settings page, because voice-led workflows require users to understand identity, tone, and control.
+- Designing product areas such as onboarding, usage limits, analytics, pricing, billing, and knowledge base as connected parts of the same activation journey.
 
 ## Outcome and Impact
 
-Worked on 17 plus end to end features collaborating with the founder and engineering team. we Still have not got our first paying customer but we had a lot more traffic and we were watching every user recording and interaction in posthog to improve the product whereever necessary.
+Worked on 17+ end-to-end features while collaborating with the founder and engineering team. The product has not yet reached its first paying customer, so the honest current outcome is product learning rather than revenue proof. The team has seen more traffic and uses PostHog recordings to study interaction patterns and improve the product where the experience is unclear.
 
 ## What I Learned
 
-I have learned that user problems, business product thinking and engineering excellence should be given maximum priority because if they are not done properly then users won't pay or buy your product. This is where i think the design comes in because he can understand this space very well. 
+This work reinforced that AI product design cannot be separated from business thinking and engineering quality. If the user problem is unclear, the model capability is weak, or the product path to value is confusing, users will not pay for the product. Design matters because it can connect those concerns: user motivation, business value, technical feasibility, and trust in the experience.

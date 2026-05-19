@@ -10,6 +10,7 @@ import {
   Heading,
   Text,
 } from '../../../components/blade/PortfolioPrimitives';
+import { MarkdownTableBlock, renderInlineMarkdown } from '../../../components/MarkdownRenderer';
 import { ProjectImageCarousel } from '../../../components/ProjectImageCarousel';
 import { parseMarkdownBlocks, type MarkdownBlock } from '../../../lib/content/markdown';
 import { resolveProjectImage, resolveProjectImages } from '../../../lib/content/project-images';
@@ -296,14 +297,14 @@ function ProjectSectionCard({ section }: { section: ProjectSection }) {
 
       <Box display="flex" flexDirection="column" gap="spacing.3">
         {section.blocks.map((block, index) => (
-          <ProjectMarkdownBlock key={`${section.title}-${index}`} block={block} />
+          <ProjectMarkdownBlock key={`${section.title}-${index}`} block={block} blockIndex={index} />
         ))}
       </Box>
     </Box>
   );
 }
 
-function ProjectMarkdownBlock({ block }: { block: MarkdownBlock }) {
+function ProjectMarkdownBlock({ block, blockIndex }: { block: MarkdownBlock; blockIndex: number }) {
   if (block.type === 'heading') {
     return (
       <Heading as="h3" size="small">
@@ -321,7 +322,7 @@ function ProjectMarkdownBlock({ block }: { block: MarkdownBlock }) {
               {block.ordered ? `${itemIndex + 1}.` : '\u2022'}
             </Text>
             <Text size="small" color="surface.text.gray.muted" wordBreak="break-word">
-              {item}
+              {renderInlineMarkdown(item, 'small', `project-list-${blockIndex}-${itemIndex}`)}
             </Text>
           </Box>
         ))}
@@ -329,9 +330,13 @@ function ProjectMarkdownBlock({ block }: { block: MarkdownBlock }) {
     );
   }
 
+  if (block.type === 'table') {
+    return <MarkdownTableBlock block={block} blockIndex={blockIndex} isCompact />;
+  }
+
   return (
     <Text color="surface.text.gray.muted" wordBreak="break-word">
-      {block.text}
+      {renderInlineMarkdown(block.text, 'medium', `project-paragraph-${blockIndex}`)}
     </Text>
   );
 }

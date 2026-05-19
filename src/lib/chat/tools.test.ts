@@ -1,18 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { executePortfolioTool } from './tools';
 
 describe('portfolio chat tools', () => {
-  beforeEach(() => {
-    process.env.SUPABASE_URL = '';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = '';
-  });
-
-  afterEach(() => {
-    delete process.env.SUPABASE_URL;
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
-  });
-
   it('returns page-specific contact content', async () => {
     const result = await executePortfolioTool({
       tool: 'get_page_content',
@@ -41,7 +31,7 @@ describe('portfolio chat tools', () => {
 
     expect(result.content).toContain('[Tool: search_projects');
     expect(result.chunks.some((chunk) => chunk.projectSlug === 'quilo')).toBe(true);
-    expect(result.retrievalMode).toBe('lexical_fallback');
+    expect(result.retrievalMode).toBe('lexical');
   });
 
   it('returns the repository project list', async () => {

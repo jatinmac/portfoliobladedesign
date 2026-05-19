@@ -1,27 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { retrievePortfolioContext } from './retriever';
-import { retrieveSupabaseContext } from './supabase-retriever';
-
-vi.mock('./supabase-retriever', () => ({
-  retrieveSupabaseContext: vi.fn(),
-}));
-
-const retrieveSupabaseContextMock = vi.mocked(retrieveSupabaseContext);
 
 describe('retrievePortfolioContext', () => {
-  beforeEach(() => {
-    retrieveSupabaseContextMock.mockReset();
-    retrieveSupabaseContextMock.mockResolvedValue(null);
-  });
-
-  it('retrieves automotive HMI evidence lexically when Supabase is unavailable', async () => {
+  it('retrieves automotive HMI evidence lexically', async () => {
     const result = await retrievePortfolioContext({
       query: 'automotive HMI infotainment manufacturing scale',
       scope: 'portfolio',
     });
 
-    expect(result.mode).toBe('lexical_fallback');
+    expect(result.mode).toBe('lexical');
     expect(result.chunks.some((chunk) => chunk.projectSlug === 'maruti-smartplay-pro-x')).toBe(true);
   });
 
@@ -36,46 +24,9 @@ describe('retrievePortfolioContext', () => {
     expect(result.chunks.every((chunk) => chunk.projectSlug === 'quilo')).toBe(true);
   });
 
-  it('uses Supabase chunks when hybrid retrieval returns matches', async () => {
-    retrieveSupabaseContextMock.mockResolvedValue([
-      {
-        id: 'maruti-smartplay-pro-x#overview',
-        sourceType: 'project',
-        sourceSlug: 'maruti-smartplay-pro-x',
-        sourceTitle: 'Maruti Suzuki SmartPlay Pro X',
-        projectSlug: 'maruti-smartplay-pro-x',
-        projectTitle: 'Maruti Suzuki SmartPlay Pro X',
-        sectionTitle: 'Overview',
-        content: 'Supabase ranked automotive evidence.',
-        searchText: 'automotive HMI',
-        score: 0.9,
-      },
-    ]);
-
+  it('uses chatContext aliases and simple stems when ranking lexical chunks', async () => {
     const result = await retrievePortfolioContext({
-      query: 'automotive HMI',
-      scope: 'portfolio',
-    });
-
-    expect(result.mode).toBe('supabase_hybrid');
-    expect(result.chunks[0]?.content).toContain('Supabase ranked');
-  });
-
-  it('falls back when Supabase retrieval throws', async () => {
-    retrieveSupabaseContextMock.mockRejectedValue(new Error('RPC failed'));
-
-    const result = await retrievePortfolioContext({
-      query: 'design system governance',
-      scope: 'portfolio',
-    });
-
-    expect(result.mode).toBe('lexical_fallback');
-    expect(result.chunks.length).toBeGreaterThan(0);
-  });
-
-  it('uses chatContext and simple stems when ranking lexical chunks', async () => {
-    const result = await retrievePortfolioContext({
-      query: 'designed identity-layer agent workflows',
+      query: 'designed identity-layer assistant workflows',
       scope: 'portfolio',
     });
 

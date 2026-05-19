@@ -14,7 +14,7 @@ import type {
 } from './types';
 
 const DEFAULT_MAX_INPUT_TOKENS = 6000;
-const DEFAULT_MAX_OUTPUT_TOKENS = 900;
+const DEFAULT_MAX_OUTPUT_TOKENS = 1400;
 const GROQ_MAX_INPUT_TOKENS = readNumberEnv('GROQ_MAX_INPUT_TOKENS', DEFAULT_MAX_INPUT_TOKENS);
 const GROQ_MAX_OUTPUT_TOKENS = readNumberEnv('GROQ_MAX_TOKENS', DEFAULT_MAX_OUTPUT_TOKENS);
 let intentKeywordCache: string[] | null = null;
@@ -22,10 +22,13 @@ let intentKeywordCache: string[] | null = null;
 export async function preparePortfolioChat(payload: ChatRequestPayload): Promise<PreparedChat> {
   const query = getLatestUserMessageContent(payload.messages);
   const queryRewrite = rewriteQueryForRetrieval(payload.messages);
+  const intent = classifyIntent(query);
+  const conversationStage = getConversationStage(payload.messages.length);
   const retrieval = await retrievePortfolioContext({
     query: queryRewrite,
     scope: payload.scope ?? 'portfolio',
     projectSlug: payload.projectSlug,
+    maxChunks: intent === 'comparison' ? 10 : undefined,
   });
   const context = formatRetrievedContext(retrieval.chunks);
   const history = trimHistory(payload.messages);
@@ -51,7 +54,7 @@ export async function preparePortfolioChat(payload: ChatRequestPayload): Promise
     messages: [
       {
         role: 'system',
-        content: buildPortfolioAnswerSystemPrompt(),
+        content: buildPortfolioAnswerSystemPrompt({ intent, conversationStage }),
       },
       {
         role: 'user',
@@ -65,23 +68,31 @@ export function formatMetadataPreamble(metadata: AssistantMetadata): string {
   return `[[PORTFOLIO_CHAT_METADATA]]${JSON.stringify(metadata)}[[/PORTFOLIO_CHAT_METADATA]]\n\n`;
 }
 
-export function buildPortfolioAnswerSystemPrompt(): string {
+export function buildPortfolioAnswerSystemPrompt(input: {
+  intent?: ChatIntent;
+  conversationStage?: AssistantMetadata['conversationStage'];
+} = {}): string {
   const siteMetadata = getSiteMetadata();
+  const intent = input.intent ?? 'overview';
+  const conversationStage = input.conversationStage ?? 'active';
 
   return [
-    `You are the repository-grounded assistant for ${siteMetadata.name}'s portfolio.`,
+    `You represent ${siteMetadata.name}'s portfolio in conversation.`,
+    'Speak like a knowledgeable teammate who can explain the work, the product thinking, and why it matters.',
+    'Visitors are usually hiring managers, design leaders, founders, or peers evaluating product-design capability.',
     'Answer only from the provided portfolio context and the visible conversation.',
     'If the context does not support a claim, say what is missing instead of guessing.',
-    'Use concise product-design language. Avoid generic portfolio filler.',
-    'For concrete claims, cite evidence inline with [Project Title - Section].',
-    'Label inferences clearly when you synthesize across sources.',
+    'Use warm, specific, evidence-based product-design language. Replace generic praise with concrete examples from projects, pages, or resume content.',
+    'For concrete claims, cite evidence inline with [Project Title - Section] or [Page Title - Section].',
+    'When a question spans multiple projects, synthesize the thread across architecture, automotive HMI, AI product work, self-initiated building, and audience-building only when those sources are present.',
+    'Use Jatin naturally in third person. Do not pretend to be Jatin or invent first-person claims.',
+    'Label inferences clearly when synthesizing across sources.',
     'Do not invent biography, resume, contact, metrics, employers, or outcomes that are not in the context.',
-    'Format every answer in Markdown with clear visual hierarchy.',
-    'Start with a level-2 heading that names the answer, then use level-3 headings to separate major sections when the answer has multiple ideas.',
-    'Do not use bold-only labels as section headings; use level-3 headings for section titles.',
+    ...buildStageInstructions(conversationStage),
+    ...buildIntentInstructions(intent),
+    'Format in Markdown, but adapt the structure to the question. Short factual questions should be concise. Deeper questions can use a level-2 heading and level-3 sections.',
     'Use bullets for evidence, tradeoffs, or grouped points, and numbered lists only for ordered flows or steps.',
-    'Keep paragraphs short. Avoid returning one dense block of text unless the user explicitly asks for a one-sentence answer.',
-    'When useful, include a concise Evidence or Sources section with inline repository citations.',
+    'Keep paragraphs short. Do not add a Sources section unless it materially improves trust; citations inline are usually enough.',
   ].join('\n');
 }
 
@@ -99,18 +110,20 @@ export function buildMetadata(input: {
     `${input.query}\n${input.chunks.map((chunk) => chunk.content).join('\n')}`,
   );
 
+  const intent = classifyIntent(input.query);
+  const conversationStage = getConversationStage(input.messageCount);
+
   return {
     resolvedScope: input.resolvedScope,
-    intent: classifyIntent(input.query),
+    intent,
     retrievalMode: input.retrievalMode,
-    conversationStage:
-      input.messageCount <= 1 ? 'opening' : input.messageCount > 6 ? 'deep_dive' : 'active',
+    conversationStage,
     retrievedChunkCount: input.chunks.length,
     representedProjectCount: input.representedProjects.length,
     sourceReferences: input.chunks.map(toSourceReference),
     agentSteps: input.agentSteps ?? [],
     queryRewrite: input.queryRewrite,
-    followUps: buildFollowUps(input.query, input.resolvedScope),
+    followUps: buildFollowUps(input.query, input.resolvedScope, input.chunks, intent),
     tokenBudget: {
       maxInputTokens: GROQ_MAX_INPUT_TOKENS,
       estimatedInputTokens,
@@ -192,8 +205,34 @@ export function classifyIntent(query: string): ChatIntent {
   return 'overview';
 }
 
-function buildFollowUps(query: string, resolvedScope: 'portfolio' | 'project'): string[] {
+function buildFollowUps(
+  query: string,
+  resolvedScope: 'portfolio' | 'project',
+  chunks: RetrievalChunk[] = [],
+  intent: ChatIntent = classifyIntent(query),
+): string[] {
   const followUps = getFollowUpConfig();
+  const mentionedProjects = Array.from(
+    new Set(chunks.filter((chunk) => chunk.sourceType === 'project').map((chunk) => chunk.projectTitle)),
+  ).slice(0, 2);
+
+  if (mentionedProjects.length > 0) {
+    const [primaryProject, secondaryProject] = mentionedProjects;
+    if (intent === 'comparison' && secondaryProject) {
+      return [
+        `How do ${primaryProject} and ${secondaryProject} show different strengths?`,
+        `Which project best shows Jatin's product thinking?`,
+        'What evidence would a hiring manager care about most?',
+      ];
+    }
+
+    return [
+      `What tradeoffs shaped ${primaryProject}?`,
+      `What does ${primaryProject} show about Jatin's design process?`,
+      `How did ${primaryProject} affect users or product outcomes?`,
+    ];
+  }
+
   if (resolvedScope === 'project') {
     return followUps.project;
   }
@@ -203,6 +242,54 @@ function buildFollowUps(query: string, resolvedScope: 'portfolio' | 'project'): 
   }
 
   return followUps.default;
+}
+
+function getConversationStage(messageCount: number): AssistantMetadata['conversationStage'] {
+  if (messageCount <= 1) {
+    return 'opening';
+  }
+
+  return messageCount > 6 ? 'deep_dive' : 'active';
+}
+
+function buildStageInstructions(stage: AssistantMetadata['conversationStage']): string[] {
+  if (stage === 'opening') {
+    return [
+      'For opening questions, be welcoming and orient the visitor quickly before offering specific project paths.',
+      'Avoid overloading the first response with every available detail.',
+    ];
+  }
+
+  if (stage === 'deep_dive') {
+    return [
+      'For deep-dive questions, increase evidence density and connect decisions, constraints, and outcomes explicitly.',
+      'Preserve nuance when the context is thin or an outcome is not quantified.',
+    ];
+  }
+
+  return ['For active conversations, answer directly and keep continuity with the previous turn.'];
+}
+
+function buildIntentInstructions(intent: ChatIntent): string[] {
+  switch (intent) {
+    case 'contact_or_resume':
+      return [
+        'For contact or resume questions, answer briefly with the exact repository-owned contact or resume details available.',
+      ];
+    case 'comparison':
+      return [
+        'For comparisons, make the connecting thread explicit and use a compact table or bullets when it helps scanning.',
+      ];
+    case 'project_deep_dive':
+      return [
+        'For project deep-dives, prioritize problem, role, design decisions, constraints, and outcome evidence.',
+      ];
+    case 'overview':
+    default:
+      return [
+        'For overview questions, give a clear portfolio-level read and name the best project examples to inspect next.',
+      ];
+  }
 }
 
 function getProjectIntentKeywords(): string[] {

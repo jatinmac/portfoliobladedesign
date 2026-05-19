@@ -104,41 +104,6 @@ export function buildAllChunks(projects: Project[]): RetrievalChunk[] {
   return [...projects.flatMap(buildProjectChunks), ...buildSiteChunks()];
 }
 
-export function buildFullPortfolioSources(projects: Project[]): RagSourceDocument[] {
-  return [
-    ...projects.map((project) => ({
-      type: 'project' as const,
-      slug: project.slug,
-      title: project.title,
-      canonicalPath: `/projects/${project.slug}`,
-      content: [
-        '## Overview',
-        project.title,
-        project.summary,
-        `Role: ${project.role}`,
-        `Timeline: ${project.timeline}`,
-        project.platform ? `Platform: ${project.platform}` : '',
-        project.outcome ? `Outcome: ${project.outcome}` : '',
-        project.productUrl ? `Product URL: ${project.productUrl}` : '',
-        getProjectChatContext(project),
-        project.body,
-      ].join('\n\n'),
-      metadata: {
-        sourcePath: project.sourcePath,
-        role: project.role,
-        timeline: project.timeline,
-        chatContext: getProjectChatContext(project),
-        tags: project.tags ?? [],
-        stack: project.stack ?? [],
-        platform: project.platform,
-        outcome: project.outcome,
-        productUrl: project.productUrl,
-      },
-    })),
-    ...buildSiteSourceDocuments(),
-  ];
-}
-
 export function buildSiteSourceDocuments(): RagSourceDocument[] {
   return getAllPageContent().map((page) => ({
     type: 'site',
@@ -201,10 +166,6 @@ export function buildDocumentChunks(source: RagSourceDocument): RetrievalChunk[]
       },
     }),
   );
-}
-
-export function buildFullPortfolioChunks(projects: Project[]): RetrievalChunk[] {
-  return buildFullPortfolioSources(projects).flatMap(buildDocumentChunks);
 }
 
 export function hashContent(value: string): string {

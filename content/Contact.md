@@ -9,5 +9,5 @@ sectionTitle: Open channels
 
 - Email: jatindavis5@gmail.com (mailto:jatindavis5@gmail.com)
 - LinkedIn: linkedin.com/in/jatin-davis-b5a256136 (https://www.linkedin.com/in/jatin-davis-b5a256136/)
-- Resume: /Users/jatinmac/PortfolioBladeAichat/assets/profile/Jatin Davis Resume JDR .pdf
-- youtube channel: https://www.youtube.com/@formula1design/shorts 
+- Resume: Download resume (/resume-download)
+- YouTube: Formula 1 Design (https://www.youtube.com/@formula1design/shorts)

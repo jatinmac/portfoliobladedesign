@@ -41,12 +41,15 @@ I was the founder, product designer, and builder. That meant owning the product 
 
 The process started with a narrow use case: a prompt library that lives close to where people already work in the browser. I shaped the extension around quick capture, retrieval, organization, and reuse. Because this was a self-initiated product, the design process also included packaging the product for the Chrome Web Store and learning from real usage after launch.
 
+The main iteration loop was practical rather than theoretical: reduce the steps needed to save a prompt, make stored prompts easier to scan later, and keep the product simple enough that people understood it immediately from the store listing and first use.
+
 ## Key Design Decisions
 
 - Build as a Chrome extension so prompt saving and reuse stayed near the user's active AI workflow.
 - Keep the product focused on prompt organization rather than broad note-taking, because the sharper scope made the utility easier to understand.
 - Prioritize speed of capture and reuse over complex taxonomy, since the value depends on reducing friction.
 - Treat launch and positioning as part of product design, not a separate marketing task.
+- Use adoption from 600+ users as a real-world signal that the workflow solved a practical problem beyond a static portfolio prototype.
 
 ## Outcome and Impact
 

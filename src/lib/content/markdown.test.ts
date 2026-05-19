@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseMarkdownBlocks } from './markdown';
+import { parseMarkdownBlocks, stripInlineMarkdown } from './markdown';
 
 describe('parseMarkdownBlocks', () => {
   it('keeps headings and separates unordered and ordered lists', () => {
@@ -30,5 +30,43 @@ Short intro.
       { type: 'heading', level: 3, text: 'Evidence & Sources' },
       { type: 'list', ordered: false, items: ['Design System Operations'] },
     ]);
+  });
+
+  it('parses markdown tables into headers and rows', () => {
+    const blocks = parseMarkdownBlocks(`## Comparison
+
+| Project | Evidence | Outcome |
+|---|---|---|
+| Double.ai | Voice agent UX | Product learning |
+| Quilo | Chrome extension | 600+ users |
+
+Next paragraph.`);
+
+    expect(blocks).toEqual([
+      { type: 'heading', level: 2, text: 'Comparison' },
+      {
+        type: 'table',
+        headers: ['Project', 'Evidence', 'Outcome'],
+        rows: [
+          ['Double.ai', 'Voice agent UX', 'Product learning'],
+          ['Quilo', 'Chrome extension', '600+ users'],
+        ],
+      },
+      { type: 'paragraph', text: 'Next paragraph.' },
+    ]);
+  });
+
+  it('preserves inline markdown for the renderer while stripping remains available for search text', () => {
+    const blocks = parseMarkdownBlocks('A **bold** point with `code` and [link](/contact).');
+
+    expect(blocks).toEqual([
+      {
+        type: 'paragraph',
+        text: 'A **bold** point with `code` and [link](/contact).',
+      },
+    ]);
+    expect(stripInlineMarkdown('A **bold** point with `code` and [link](/contact).')).toBe(
+      'A bold point with code and link.',
+    );
   });
 });

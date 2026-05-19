@@ -169,6 +169,45 @@ export function ChatPanel({
     [messages],
   );
 
+  const updateAssistantMessage = useCallback(
+    (
+      messageId: string,
+      content: string,
+      assistantMetadata?: AssistantMetadata,
+    ) => {
+      setMessages((currentMessages) => {
+        let didUpdate = false;
+        const nextMessages = currentMessages.map((message) => {
+          if (message.id !== messageId) {
+            return message;
+          }
+
+          const nextMetadata = assistantMetadata ?? message.metadata;
+          if (message.content === content && message.metadata === nextMetadata) {
+            return message;
+          }
+
+          didUpdate = true;
+          return {
+            ...message,
+            content,
+            metadata: nextMetadata,
+          };
+        });
+
+        return didUpdate ? nextMessages : currentMessages;
+      });
+    },
+    [],
+  );
+
+  const removeMessage = useCallback((messageId: string) => {
+    setMessages((currentMessages) => {
+      const nextMessages = currentMessages.filter((message) => message.id !== messageId);
+      return nextMessages.length === currentMessages.length ? currentMessages : nextMessages;
+    });
+  }, []);
+
   const sendMessage = useCallback(
     async (messageText: string, baseMessages = messages) => {
       const content = messageText.trim();
@@ -251,7 +290,9 @@ export function ChatPanel({
             assistantContent += decoded;
           }
 
-          updateAssistantMessage(assistantMessage.id, assistantContent, assistantMetadata);
+          if (parsedMetadata || assistantContent) {
+            updateAssistantMessage(assistantMessage.id, assistantContent, assistantMetadata);
+          }
         }
 
       } catch (caughtError) {
@@ -270,7 +311,7 @@ export function ChatPanel({
         abortControllerRef.current = null;
       }
     },
-    [isStreaming, messages, onFirstUserMessage, projectSlug, scope],
+    [isStreaming, messages, onFirstUserMessage, projectSlug, removeMessage, scope, updateAssistantMessage],
   );
 
   const handleStop = () => {
@@ -289,28 +330,6 @@ export function ChatPanel({
     const baseMessages = messages.slice(0, lastUserIndex);
     setMessages(baseMessages);
     void sendMessage(latestUserMessage.content, baseMessages);
-  };
-
-  const updateAssistantMessage = (
-    messageId: string,
-    content: string,
-    assistantMetadata?: AssistantMetadata,
-  ) => {
-    setMessages((currentMessages) =>
-      currentMessages.map((message) =>
-        message.id === messageId
-          ? {
-              ...message,
-              content,
-              metadata: assistantMetadata ?? message.metadata,
-            }
-          : message,
-      ),
-    );
-  };
-
-  const removeMessage = (messageId: string) => {
-    setMessages((currentMessages) => currentMessages.filter((message) => message.id !== messageId));
   };
 
   return (
@@ -487,14 +506,26 @@ function ChatComposer({
   onStop,
   onErrorDismiss,
 }: ChatComposerProps) {
+  const handleChange = (input: ChatInputPayload) => {
+    const nextDraft = readChatInputValue(input, draft);
+    if (nextDraft !== draft) {
+      onDraftChange(nextDraft);
+    }
+  };
+
+  const handleSubmit = (input: ChatInputPayload) => {
+    preventDefaultIfEvent(input);
+    void onSubmit(readChatInputValue(input, draft));
+  };
+
   return (
     <Box width="620px" maxWidth={{ base: 'calc(100% - 8px)', m: '100%' }} marginX="auto">
       <ChatInput
         accessibilityLabel="Ask about Jatin's work"
         placeholder="Ask anything about Jatin's work"
         value={draft}
-        onChange={({ value }) => onDraftChange(value)}
-        onSubmit={({ value }) => void onSubmit(value)}
+        onChange={handleChange}
+        onSubmit={handleSubmit}
         isGenerating={isStreaming}
         onStop={onStop}
         validationState={error ? 'error' : 'none'}
@@ -503,6 +534,48 @@ function ChatComposer({
       />
     </Box>
   );
+}
+
+type ChatInputPayload =
+  | { value?: string }
+  | { target?: { value?: string }; currentTarget?: { value?: string }; preventDefault?: () => void }
+  | string
+  | unknown;
+
+function readChatInputValue(input: ChatInputPayload, fallback: string): string {
+  if (typeof input === 'string') {
+    return input;
+  }
+
+  if (!input || typeof input !== 'object') {
+    return fallback;
+  }
+
+  const payload = input as {
+    value?: unknown;
+    target?: { value?: unknown };
+    currentTarget?: { value?: unknown };
+  };
+
+  if (typeof payload.value === 'string') {
+    return payload.value;
+  }
+
+  if (typeof payload.target?.value === 'string') {
+    return payload.target.value;
+  }
+
+  if (typeof payload.currentTarget?.value === 'string') {
+    return payload.currentTarget.value;
+  }
+
+  return fallback;
+}
+
+function preventDefaultIfEvent(input: ChatInputPayload): void {
+  if (input && typeof input === 'object' && 'preventDefault' in input) {
+    (input as { preventDefault?: () => void }).preventDefault?.();
+  }
 }
 
 type ChatComposerShellProps = {

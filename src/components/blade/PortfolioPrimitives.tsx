@@ -17,6 +17,7 @@ export {
   Chip,
   ChipGroup,
   CloseIcon,
+  Code,
   Divider,
   DownloadIcon,
   ExternalLinkIcon,

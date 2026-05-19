@@ -23,6 +23,7 @@ describe('central content loader', () => {
       'contact',
       'projects',
       'experience',
+      'resume',
     ]);
     expect(getExpertiseChips()).toContain('Product builder');
     expect(getAllContentPages().find((page) => page.slug === 'experience')?.body).toContain(
@@ -37,12 +38,16 @@ describe('central content loader', () => {
     expect(getContactLinks()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          label: 'youtube channel',
+          label: 'YouTube',
           href: 'https://www.youtube.com/@formula1design/shorts',
         }),
       ]),
     );
-    expect(getResumeHighlights()).toEqual([]);
+    expect(getResumeHighlights()).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Architect turned product designer'),
+      ]),
+    );
     expect(getChatConfig().followUps.project).toContain('What tradeoffs shaped this project?');
   });
 });

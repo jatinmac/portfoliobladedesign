@@ -79,7 +79,7 @@ Primary content sources:
 
 - `src/lib/content/site.ts`: site metadata, owner labels, navigation, expertise chips, experience timeline, contact links, resume highlights, and starter prompts.
 - `content/projects/*.md`: markdown case studies with frontmatter and body content.
-- `supabase/migrations/`: Supabase Postgres + pgvector schema for runtime RAG retrieval.
+- `src/lib/rag/chunks.ts`: in-process lexical RAG chunks built from checked-in portfolio content.
 
 Current UI baseline:
 
@@ -167,9 +167,8 @@ Current UI baseline:
 - Build retrieval chunks from project overview and markdown sections.
 - Attach project metadata to every chunk.
 - Rank chunks lexically by query tokens, phrases, section titles, content, metadata, and generated search text.
-- Prefer Supabase hybrid retrieval using `rag_sources`, `rag_chunks`, `rag_index_runs`, and `ai_knowledge_notes` when Supabase env vars are configured.
-- Fall back to lexical retrieval when Supabase env vars are missing, the database has no matches, or retrieval fails.
-- Index full portfolio content from `content/projects/*.md` and `src/lib/content/site.ts` with `npm run rag:index`.
+- Use lexical retrieval as the only RAG path; do not require an external vector database.
+- Build site and project chunks directly from checked-in markdown/YAML content at runtime.
 - Cap retrieved chunks per project for portfolio-wide questions when needed.
 - Trim retrieved context to fit prompt token budget.
 - Format retrieved context with project and section labels for citation.
@@ -294,10 +293,6 @@ GROQ_REASONING_EFFORT
 GROQ_RETRY_COUNT
 GROQ_RETRY_BACKOFF_MS
 GROQ_TIMEOUT_MS
-SUPABASE_URL
-SUPABASE_SERVICE_ROLE_KEY
-RAG_EMBEDDING_MODEL
-RAG_MATCH_THRESHOLD
 NEXT_PUBLIC_SITE_URL
 ```
 
@@ -389,7 +384,6 @@ A release is acceptable when:
 - `npm run build` passes.
 - `npm test` passes.
 - `npm run typecheck` passes.
-- `npm run rag:index` completes when valid Supabase env vars and the migration are present.
 - Chat works with a valid `GROQ_API_KEY`.
 - Static pages render successfully.
 - Project pages render from markdown content.

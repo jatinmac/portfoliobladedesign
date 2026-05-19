@@ -1,7 +1,7 @@
 import type { Project } from '../content/types';
 
 export type RetrievalScope = 'portfolio' | 'project';
-export type RetrievalMode = 'supabase_hybrid' | 'lexical_fallback' | 'lexical';
+export type RetrievalMode = 'lexical';
 export type RagSourceType = 'project' | 'site' | 'ai_note';
 
 export type RetrievalChunk = {
