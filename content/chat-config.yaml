@@ -1,0 +1,18 @@
+starterPrompts:
+  - What has Jatin Davis worked on?
+  - What are Jatin Davis's interests?
+ 
+
+followUps:
+  project:
+    - What tradeoffs shaped this project?
+    - What evidence supports the design decisions?
+    - How would you summarize the outcome?
+  designSystem:
+    - Which project best shows design system governance?
+    - How did Jatin support adoption?
+    - What was the contribution model?
+  default:
+    - Which project should I read first?
+    - What does Jatin do best?
+    - How does the portfolio show product thinking?
