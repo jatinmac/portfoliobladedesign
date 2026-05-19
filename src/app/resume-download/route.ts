@@ -3,21 +3,11 @@ import path from 'node:path';
 
 import { NextResponse } from 'next/server';
 
-import { getContactLinks } from '../../lib/content/content-loader';
-
 export const runtime = 'nodejs';
 
 export async function GET() {
-  const resumePath = getContactLinks().find((link) =>
-    link.label.toLowerCase().includes('resume'),
-  )?.href;
-
-  if (!resumePath) {
-    return new NextResponse('Resume not found', { status: 404 });
-  }
-
   const allowedDirectory = path.join(process.cwd(), 'assets', 'profile');
-  const resolvedPath = path.resolve(resumePath);
+  const resolvedPath = path.join(allowedDirectory, 'Jatin Davis Resume JDR .pdf');
   const relativePath = path.relative(allowedDirectory, resolvedPath);
 
   if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {

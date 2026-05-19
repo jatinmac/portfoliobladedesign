@@ -15,6 +15,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CloseIcon,
+  DownloadIcon,
   Fade,
   IconButton,
   MailIcon,
@@ -106,6 +107,7 @@ export function PortfolioSidebar({
   const [isOpenContentVisible, setIsOpenContentVisible] = useState(true);
   const collapseTimerRef = useRef<number | null>(null);
   const hasContactPage = pages.some((page) => page.href === '/contact');
+  const sidebarPages = pages.filter((page) => page.href !== '/resume');
 
   useEffect(() => {
     return () => {
@@ -348,7 +350,7 @@ export function PortfolioSidebar({
 
               {isPagesExpanded ? (
                 <Box display="flex" flexDirection="column" gap="spacing.0">
-                  {pages.map((item) => (
+                  {sidebarPages.map((item) => (
                     <SidebarTabLink
                       key={item.href}
                       href={item.href}
@@ -562,6 +564,18 @@ function SidebarLinksPanel({
             </Button>
           </NewChatButtonTheme>
         ) : null}
+        <NewChatButtonTheme>
+          <Button
+            icon={DownloadIcon}
+            isFullWidth
+            href="/resume-download"
+            size="medium"
+            variant="secondary"
+            color="primary"
+          >
+            Resume
+          </Button>
+        </NewChatButtonTheme>
       </Box>
     </Box>
   );

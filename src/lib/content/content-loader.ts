@@ -224,7 +224,7 @@ export function getContactLinks(): ContactLink[] {
 }
 
 export function getResumeHighlights(): string[] {
-  const body = getOptionalContentPage('resume')?.body;
+  const body = getOptionalContentPage('experience')?.body;
   return body ? extractListUnderHeading(body, 'Resume') : [];
 }
 
