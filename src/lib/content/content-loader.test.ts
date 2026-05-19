@@ -23,7 +23,6 @@ describe('central content loader', () => {
       'contact',
       'projects',
       'experience',
-      'resume',
     ]);
     expect(getExpertiseChips()).toContain('Product builder');
     expect(getAllContentPages().find((page) => page.slug === 'experience')?.body).toContain(
