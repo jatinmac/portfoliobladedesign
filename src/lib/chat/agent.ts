@@ -9,6 +9,7 @@ import type { RetrievalChunk, RetrievalMode, RetrievalScope } from '../rag/types
 import {
   buildMetadata,
   buildPortfolioAnswerSystemPrompt,
+  classifyIntent,
   decomposeMultiPartQuery,
   getLatestUserMessageContent,
   rewriteQueryForRetrieval,
@@ -200,7 +201,11 @@ function buildFinalAnswerMessages(
   return [
     {
       role: 'system',
-      content: buildPortfolioAnswerSystemPrompt(),
+      content: buildPortfolioAnswerSystemPrompt({
+        intent: classifyIntent(latestQuery),
+        conversationStage:
+          payload.messages.length <= 1 ? 'opening' : payload.messages.length > 6 ? 'deep_dive' : 'active',
+      }),
     },
     {
       role: 'user',
@@ -225,18 +230,6 @@ function resolveMetadataScope(
 }
 
 function resolveRetrievalMode(executions: PortfolioToolExecution[]): RetrievalMode {
-  const modes = executions
-    .map((execution) => execution.retrievalMode)
-    .filter((mode): mode is RetrievalMode => Boolean(mode));
-
-  if (modes.includes('supabase_hybrid')) {
-    return 'supabase_hybrid';
-  }
-
-  if (modes.includes('lexical_fallback')) {
-    return 'lexical_fallback';
-  }
-
   return 'lexical';
 }
 

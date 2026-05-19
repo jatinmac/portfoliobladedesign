@@ -46,7 +46,7 @@ describe('createGroqCompletionStream', () => {
     expect(body).toMatchObject({
       model: 'llama-3.3-70b-versatile',
       stream: true,
-      max_tokens: 900,
+      max_tokens: 1400,
       temperature: 0.2,
     });
     expect(body).not.toHaveProperty('reasoning_effort');

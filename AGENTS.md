@@ -11,7 +11,7 @@ The application has four clear layers:
 - **Presentation:** `src/app/` route files assemble page experiences, while reusable UI lives under `src/components/`. `src/app/layout.tsx` wraps the app with `StyledComponentsRegistry`, `BladeProviders`, and the app-wide `PortfolioAppShell`. Blade infrastructure is centralized in `src/components/blade/`: `BladeProviders.tsx`, `BladeMotionProvider.tsx`, `StyledComponentsRegistry.tsx`, `portfolio-theme.ts`, `blade-fonts.ts`, `framer-motion-features.js`, `razorSensePreload.ts`, and `PortfolioPrimitives.tsx`. `PortfolioPrimitives.tsx` is the controlled barrel for Blade components, icons, hooks, and types. `src/app/globals.css` sets the Blade Inter font stack (`'Inter', 'Inter Fallback Arial', Arial, sans-serif`) on `body` as a safety net so native HTML elements that are not wrapped in Blade components still render in the correct font. Most page-level UI is built with `Box`, `Text`, `Heading`, `Button`, `Badge`, `Link`, `List`, and RazorSense primitives; `ChatInput` and `ChatMessage` are chat-panel-specific primitives.
 - **App shell and client state:** `src/components/PortfolioAppShell.tsx` is the outermost client shell. It renders the desktop sidebar, mobile top bar, mobile sidebar overlay, and main content region. It manages recent chat sessions in `sessionStorage`, keeps the active chat ID, handles sidebar navigation/new-chat behavior, and provides `PortfolioShellContext`. The exported `usePortfolioShell()` hook exposes `activeChatId` and `handleFirstUserMessage()` to descendants such as `ChatPanel`.
 - **Portfolio content:** All author-editable portfolio knowledge lives in `content/`. `content/about.md`, `content/experience.md`, `content/contact.md`, `content/resume.md`, `content/projects.md`, `content/chat-config.yaml`, and `content/projects/*.md` are the single source of truth for AI-citable portfolio claims, page headers, RAG content, starter prompts, follow-ups, project metadata, project product links, and project media keys. `src/lib/content/types.ts` is the canonical content type source. `content-loader.ts` reads shared markdown/YAML and exposes domain helpers; `projects.ts` reads project markdown with `gray-matter`; `markdown.ts` parses project markdown blocks for structured rendering; `pages.ts` adapts content files into the page-content contract; and `site.ts` exposes site metadata, navigation, starter prompt, expertise, experience, contact, resume, page metadata, and follow-up helpers.
-- **Chat and retrieval:** `src/app/api/chat/route.ts` validates requests, rejects cross-origin requests, rate-limits by hashed IP, checks `GROQ_API_KEY`, calls `runPortfolioAgent`, streams metadata first, then streams assistant text. `src/lib/chat/types.ts` defines chat domain types, `prompt.ts` prepares retrieval-backed prompts and metadata, `agent.ts` performs up to three read-only Groq tool-planning steps through `tools.ts`, and `validation.ts` guards request payloads. Retrieval types live in `src/lib/rag/types.ts`; `retriever.ts` coordinates retrieval; `supabase-retriever.ts` provides Supabase hybrid retrieval; `chunks.ts` builds checked-in lexical chunks; `embeddings.ts` uses `@xenova/transformers` for local embeddings; and `indexing.ts` writes chunks into Supabase.
+- **Chat and retrieval:** `src/app/api/chat/route.ts` validates requests, rejects cross-origin requests, rate-limits by hashed IP, checks `GROQ_API_KEY`, calls `runPortfolioAgent`, streams metadata first, then streams assistant text. `src/lib/chat/types.ts` defines chat domain types, `prompt.ts` prepares retrieval-backed prompts and metadata, `agent.ts` performs up to three read-only Groq tool-planning steps through `tools.ts`, and `validation.ts` guards request payloads. Retrieval types live in `src/lib/rag/types.ts`; `retriever.ts` runs the in-process lexical retriever over checked-in content chunks; and `chunks.ts` builds project and site chunks from `content/`.
 
 The current architecture is strongest when UI changes stay inside the presentation layer, shell/sidebar/session changes stay inside `PortfolioAppShell.tsx` and `PortfolioSidebar.tsx`, Blade/provider changes stay inside `src/components/blade/`, chat behavior stays inside `src/components/ChatPanel.tsx`, API contract changes stay inside `src/app/api/chat/route.ts`, and retrieval, Groq, prompt, or content-loader changes stay inside `src/lib/chat/`, `src/lib/rag/`, `src/lib/groq/`, or `src/lib/content/` as appropriate.
 
@@ -19,14 +19,14 @@ The current architecture is strongest when UI changes stay inside the presentati
 
 Use `src/app/` for App Router pages, metadata routes, and API routes. Key entry points are `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/api/chat/route.ts`, `src/app/robots.ts`, and `src/app/sitemap.ts`. Static routes are `/about`, `/experience`, `/contact`, `/resume`, and `/projects`; project detail routes are `/projects/[slug]`, with `src/app/projects/[slug]/loading.tsx` rendering `ProjectPageLoading`.
 
-Put reusable UI in `src/components/`, app shell state in `src/components/PortfolioAppShell.tsx`, Blade infrastructure in `src/components/blade/`, shared page shells in `src/components/page-layouts/`, type declaration files in `src/types/`, chat logic in `src/lib/chat/`, retrieval in `src/lib/rag/`, Groq code in `src/lib/groq/`, Supabase client setup in `src/lib/supabase/`, the server analytics helper in `src/lib/analytics/`, shared environment helpers in `src/lib/env.ts`, and content loaders/types in `src/lib/content/`. The agentic chat loop lives in `src/lib/chat/agent.ts`, read-only portfolio tools live in `src/lib/chat/tools.ts`, prompt and metadata construction lives in `src/lib/chat/prompt.ts`, and static page content for retrieval is adapted through `src/lib/content/pages.ts`.
+Put reusable UI in `src/components/`, app shell state in `src/components/PortfolioAppShell.tsx`, Blade infrastructure in `src/components/blade/`, shared page shells in `src/components/page-layouts/`, type declaration files in `src/types/`, chat logic in `src/lib/chat/`, lexical retrieval in `src/lib/rag/`, Groq code in `src/lib/groq/`, the server analytics helper in `src/lib/analytics/`, shared environment helpers in `src/lib/env.ts`, and content loaders/types in `src/lib/content/`. The agentic chat loop lives in `src/lib/chat/agent.ts`, read-only portfolio tools live in `src/lib/chat/tools.ts`, prompt and metadata construction lives in `src/lib/chat/prompt.ts`, and static page content for retrieval is adapted through `src/lib/content/pages.ts`.
 
 Notable components and helpers:
 
 - `HomepageChatExperience.tsx`: homepage composition around portfolio-scoped `ChatPanel`.
 - `ChatPanel.tsx`: chat state, streaming, storage, retry, stop, reset, metadata parsing, starter prompts, follow-ups, and composer states.
-- `ChatMessageContent.tsx`: compact markdown rendering for chat answers and user messages.
-- `MarkdownRenderer.tsx` and `MarkdownArticle.tsx`: constrained markdown rendering for static/project content.
+- `ChatMessageContent.tsx`: compact markdown rendering for chat answers and user messages. Assistant messages render through `MarkdownRenderer`; user messages stay plain text inside a small Blade `Box`.
+- `MarkdownRenderer.tsx` and `MarkdownArticle.tsx`: constrained markdown rendering for chat answers, static pages, and project content. `MarkdownRenderer` supports headings, paragraphs, lists, markdown tables, inline links, inline code, bold emphasis, and semantic italic emphasis using Blade components where Blade equivalents exist.
 - `PortfolioSidebar.tsx`: Blade sidebar navigation, projects, and recent-chat rows.
 - `ProjectImageCarousel.tsx`: Blade `Carousel`/`CarouselItem` media for project pages with multiple images.
 - `ProjectPageLoading.tsx`: project detail loading state using Blade `Spinner` and text.
@@ -35,7 +35,6 @@ Notable components and helpers:
 Root-level support directories and files:
 
 - `scripts/`: TypeScript operational scripts run by `tsx`, currently `validate-content.ts` and `index-rag.ts`.
-- `supabase/migrations/`: SQL migrations for the RAG database and improved fusion retrieval.
 - `.codex/`: local agent/design reference material, including Figma/sidebar implementation references.
 - `PRD.md`: product requirements context for larger product decisions.
 - `next.config.mjs`: disables `X-Powered-By`, enables `compiler.styledComponents: true`, and sets `X-Content-Type-Options`, `Referrer-Policy`, and `X-Frame-Options` headers.
@@ -77,9 +76,14 @@ New UI work should start from the current Blade surfaces:
 - The `PortfolioSidebar` recent chat messages are fixed to the current Figma-derived Blade `ActionList` row design unless a future request explicitly changes them. Preserve direct `ActionListItem` children, 8px padding, 8px radius, left-aligned single-line text, ellipsis truncation, black text, selected-state behavior, and the existing `onSelectChat` routing/session behavior.
 - `PortfolioAppShell` is a behavior-preservation boundary for `sessionStorage` recent chats, active chat ID, first-message registration, new-chat routing, selected-chat routing, and the mobile top bar/sidebar overlay.
 - `ChatPanel` remains a behavior-preservation boundary. Its visible states can be refined, but keep starter prompts, follow-up actions, streaming behavior, storage, and scoped API behavior intact.
+- `ChatInput` event handlers in `ChatPanel` must defensively normalize payloads before updating state or submitting. Blade documents `onChange`/`onSubmit` as value-shaped payloads, but browser/event-shaped payloads can still surface through interaction paths. Always extract a string from `payload.value`, `target.value`, or `currentTarget.value`, fall back to the current draft, and call `preventDefault()` when present. Do not pass raw handler payloads into `sendMessage`, or the UI can submit/render `[object Event]`.
+- Streamed assistant message updates in `ChatPanel` should remain idempotent. Keep `updateAssistantMessage` stable with `useCallback`, avoid setting state when content and metadata are unchanged, and avoid per-chunk state writes before either metadata or assistant text exists. This prevents maximum update depth loops during streaming.
 - The chat experience should show suggestions only for assistant metadata. Do not render a "Sources used" section in chat answers unless a new design explicitly reintroduces it.
 - Starter and follow-up suggestions use Blade `Chip` and `ChipGroup`, are left-aligned, and stack with `gap="spacing.0"`. The chat suggestion chips use a scoped Blade theme override so their chip radius resolves to `1000`.
 - User message text is rendered through `ChatMessageContent.tsx` with a Blade `Box` wrapper using `padding="spacing.2"` for 4px inner padding.
+- Assistant message text must remain human-readable and structured. Keep `ChatMessageContent.tsx` routing assistant answers through `MarkdownRenderer` after streaming completes, and do not replace it with raw `whiteSpace="pre-wrap"` output except during the active streaming state.
+- Markdown tables in assistant answers and project markdown must render as a static Blade `Box` grid with horizontal overflow support, not as raw pipe-delimited text. Do not use Blade `Table` inside chat markdown rendering because its internal state can conflict with streamed chat message updates. Inline markdown should preserve useful hierarchy: `**bold**` maps to semibold Blade `Text`, inline code maps to Blade `Code`, safe links map to Blade `Link`, and `*italic*` is kept as semantic emphasis.
+- Keep `src/lib/content/markdown.ts` as the shared parser for markdown blocks. When adding markdown syntax support, update `MarkdownRenderer.tsx`, project-page rendering, and `src/lib/content/markdown.test.ts` together so chat and project pages do not diverge.
 
 The next design pass should change layout and UI composition only unless the user explicitly asks for backend, retrieval, content, or Groq changes. If a UI change appears to require those layers, pause and document why before modifying them.
 
@@ -93,7 +97,14 @@ The next design pass should change layout and UI composition only unless the use
 - `npm test`: run the Vitest suite.
 - `npm run validate`: validate central content files, project frontmatter, YAML config, kebab-case slugs, slug-matched project filenames, numeric project `order`, and duplicate slugs.
 - `npm run prebuild`: run the same content validation via `tsx scripts/validate-content.ts`; this runs automatically before `npm run build`.
-- `npm run rag:index`: index all content-backed portfolio sources into Supabase RAG tables via `tsx scripts/index-rag.ts`.
+
+## Hosting & Deployment Notes
+
+The GitHub repository for the deployed app is `https://github.com/jatinmac/portfoliobladedesign`. The production Vercel deployment is served from `https://jatindavis.vercel.app/` and deploys from the `main` branch.
+
+Vercel production chat requires the Groq environment variables to be configured in the Vercel project settings. At minimum, set `GROQ_API_KEY` and `GROQ_MODEL`; `GROQ_BASE_URL` may be omitted because the code defaults to `https://api.groq.com/openai/v1`. When changing any Vercel environment variable, redeploy the production deployment because already-built serverless functions do not automatically pick up new values.
+
+If `/api/chat` returns `503` in Vercel runtime logs and external calls to `api.groq.com/openai/v1/chat/completions` show `401`, treat it as a Groq secret-value problem first: re-copy the raw Groq key into Vercel without quotes, whitespace, or a `Bearer ` prefix, then redeploy. This exact issue was resolved by re-pasting the `GROQ_API_KEY` value in Vercel.
 
 ## Coding Style & Naming Conventions
 
@@ -121,7 +132,7 @@ The Blade MCP server is available in this workspace. Use `get_blade_component_do
 
 ## Testing Guidelines
 
-Use Vitest for unit and integration coverage. `vitest.config.ts` uses the `node` environment and currently includes only `src/**/*.test.ts`; use co-located `*.test.ts` files unless the config is updated to include TSX tests. Existing tests are co-located with source modules, including chat agent/prompt/tools/validation tests, Groq client tests, content loader/project/markdown tests, and RAG chunks/retriever/Supabase/indexing tests.
+Use Vitest for unit and integration coverage. `vitest.config.ts` uses the `node` environment and currently includes only `src/**/*.test.ts`; use co-located `*.test.ts` files unless the config is updated to include TSX tests. Existing tests are co-located with source modules, including chat agent/prompt/tools/validation tests, Groq client tests, content loader/project/markdown tests, and RAG chunks/retriever tests.
 
 Prioritize chat route validation, agent tool dispatch, Groq streaming and tool-call request formation, retrieval ranking, prompts, content loading, markdown parsing/rendering, content validation, auto-generated project chat context, `sessionStorage` chat persistence by scope, and orchestrator scope. `content-loader.ts` exports `resetContentLoaderCacheForTests()` for tests that need fresh content reads. Run `npm run validate` and `npm test` before a pull request.
 
@@ -131,7 +142,7 @@ Prioritize chat route validation, agent tool dispatch, Groq streaming and tool-c
 
 `src/lib/content/site.ts` exports `siteMetadata`, `navigationItems`, `starterPrompts`, `expertiseChips`, `experienceItems`, `contactLinks`, `resumeHighlights`, `buildPageMetadata()`, `getStarterPrompts()`, `getFollowUpConfig()`, and `getSiteMetadata()`.
 
-`src/lib/content/markdown.ts` provides `parseMarkdownBlocks()` and `stripInlineMarkdown()` for project detail rendering. Keep markdown parsing centralized there instead of creating route-local parsers.
+`src/lib/content/markdown.ts` provides `parseMarkdownBlocks()` and `stripInlineMarkdown()` for structured rendering and retrieval/search text cleanup. `parseMarkdownBlocks()` intentionally preserves inline markdown for the React renderer while extracting block structure such as headings, lists, paragraphs, and tables. `stripInlineMarkdown()` is still used where plain searchable text is needed, such as RAG chunk construction. Keep markdown parsing centralized there instead of creating route-local parsers.
 
 ## Chat, Retrieval & Analytics Notes
 
@@ -139,7 +150,7 @@ Prioritize chat route validation, agent tool dispatch, Groq streaming and tool-c
 
 The agent may run up to three read-only Groq tool-calling planning steps before the final streamed answer. `src/lib/chat/prompt.ts` owns `preparePortfolioChat()`, `buildPortfolioAnswerSystemPrompt()`, `buildMetadata()`, `classifyIntent()`, `decomposeMultiPartQuery()`, `rewriteQueryForRetrieval()`, token-budget handling, source references, and follow-up selection. `src/lib/chat/types.ts` defines `ChatMessage`, `ChatRequestPayload`, `ChatIntent`, `AgentStep`, `AssistantMetadata`, and `PreparedChat`.
 
-Tools must stay grounded in checked-in content from `content/` and the existing retriever; do not add external search or mutation tools. Project chat stays scoped unless the user asks to compare or broaden. Supabase Postgres + pgvector is the preferred RAG store when `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are configured; `src/lib/supabase/server.ts` provides `createSupabaseServiceClient()` and `hasSupabaseRagConfig()`. Lexical retrieval remains the fallback when Supabase is missing, empty, or unavailable. In development, content and lexical chunk loaders bypass caches so edits in `content/` are picked up without a restart; production keeps caches for performance. Keep Groq unchanged as the answer-generation provider. The only analytics helper left in the repo is the server-side IP hashing utility used for rate limiting.
+Tools must stay grounded in checked-in content from `content/` and the existing retriever; do not add external search or mutation tools. Project chat stays scoped unless the user asks to compare or broaden. Retrieval is lexical-only and runs in-process over chunks built from checked-in markdown and YAML content. In development, content and lexical chunk loaders bypass caches so edits in `content/` are picked up without a restart; production keeps caches for performance. Keep Groq unchanged as the answer-generation provider. The only analytics helper left in the repo is the server-side IP hashing utility used for rate limiting.
 
 Every AI-citable claim should trace back to a file in `content/`. Do not add new portfolio facts, bio copy, resume claims, contact details, starter prompts, follow-ups, or project evidence as hardcoded strings in TypeScript. Add or edit markdown/YAML in `content/`, then let the loaders, RAG chunks, and chat tools consume it.
 
@@ -151,7 +162,6 @@ Important pinned or integration-sensitive dependencies:
 - `styled-components`: pinned to `5.3.11`; Blade provider/SSR infrastructure depends on the styled-components setup and `next.config.mjs` compiler flag.
 - `framer-motion`: pinned to `11.13.3`; Blade motion infrastructure uses the local lazy feature bundle.
 - `@razorpay/i18nify-js` and `@razorpay/i18nify-react`: Blade peer/integration dependencies.
-- `@xenova/transformers`: local embedding generation for RAG.
 - `tsx`: runs TypeScript scripts in `scripts/`.
 
 ## Commit & Pull Request Guidelines
@@ -160,6 +170,8 @@ No Git history is available in this workspace, so use short imperative commits s
 
 ## Security & Configuration Tips
 
-Do not commit secrets or local environment files. Document keys in `.env.example`, including `NEXT_PUBLIC_SITE_URL`, `GROQ_API_KEY`, `GROQ_BASE_URL`, `GROQ_MODEL`, `GROQ_MAX_INPUT_TOKENS`, `GROQ_MAX_TOKENS`, `GROQ_TEMPERATURE`, `GROQ_REASONING_EFFORT`, `GROQ_RETRY_COUNT`, `GROQ_RETRY_BACKOFF_MS`, `GROQ_TIMEOUT_MS`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RAG_EMBEDDING_MODEL`, and `RAG_MATCH_THRESHOLD`. Keep build output, local TypeScript cache artifacts, and secret-bearing environment files out of source control.
+Do not commit secrets or local environment files. Document keys in `.env.example`, including `NEXT_PUBLIC_SITE_URL`, `GROQ_API_KEY`, `GROQ_BASE_URL`, `GROQ_MODEL`, `GROQ_MAX_INPUT_TOKENS`, `GROQ_MAX_TOKENS`, `GROQ_TEMPERATURE`, `GROQ_REASONING_EFFORT`, `GROQ_RETRY_COUNT`, `GROQ_RETRY_BACKOFF_MS`, and `GROQ_TIMEOUT_MS`. Keep build output, local TypeScript cache artifacts, and secret-bearing environment files out of source control.
+
+For hosted debugging, remember that the app only checks whether `GROQ_API_KEY` exists before calling Groq. A configured but incorrect key will pass the local presence check and then fail upstream with `401`, which the API maps to a `503` response for the client.
 
 Security-related infrastructure currently lives in `next.config.mjs`: `poweredByHeader: false`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and `X-Frame-Options: DENY`.

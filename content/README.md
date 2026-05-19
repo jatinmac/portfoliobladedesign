@@ -21,5 +21,5 @@ Edit `content/chat-config.yaml` for starter prompts and follow-ups.
 ## After Editing
 
 - Dev mode: changes are picked up automatically.
-- Production: run `npm run rag:index` to update Supabase embeddings.
+- Production chat uses the checked-in lexical RAG content directly; redeploy after content changes.
 - Run `npm run validate` to check for errors.

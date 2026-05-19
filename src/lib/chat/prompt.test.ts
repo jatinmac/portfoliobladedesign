@@ -3,16 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { preparePortfolioChat, rewriteQueryForRetrieval } from './prompt';
 
 describe('preparePortfolioChat', () => {
-  it('asks the model to structure answers with markdown sections', async () => {
+  it('asks the model to answer with portfolio persona and adaptive markdown', async () => {
     const prepared = await preparePortfolioChat({
       messages: [{ role: 'user', content: 'How does the chat work?' }],
       scope: 'portfolio',
     });
 
     const systemPrompt = prepared.messages[0]?.content ?? '';
-    expect(systemPrompt).toContain('Format every answer in Markdown');
-    expect(systemPrompt).toContain('level-2 heading');
-    expect(systemPrompt).toContain('Do not use bold-only labels');
+    expect(systemPrompt).toContain('You represent Jatin Davis');
+    expect(systemPrompt).toContain('hiring managers');
+    expect(systemPrompt).toContain('Format in Markdown, but adapt');
     expect(systemPrompt).toContain('Use bullets');
   });
 
@@ -22,7 +22,7 @@ describe('preparePortfolioChat', () => {
       scope: 'portfolio',
     });
 
-    expect(prepared.metadata.retrievalMode).toBe('lexical_fallback');
+    expect(prepared.metadata.retrievalMode).toBe('lexical');
     expect(prepared.metadata.agentSteps[0]).toEqual(
       expect.objectContaining({
         tool: 'search_projects',

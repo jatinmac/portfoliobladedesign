@@ -1,7 +1,7 @@
 starterPrompts:
-  - What has Jatin Davis worked on?
-  - What are Jatin Davis's interests?
- 
+  - What has Jatin designed and shipped?
+  - How does Jatin approach product design?
+
 
 followUps:
   project:
@@ -16,3 +16,4 @@ followUps:
     - Which project should I read first?
     - What does Jatin do best?
     - How does the portfolio show product thinking?
+    - What evidence shows Jatin can work closely with engineers?

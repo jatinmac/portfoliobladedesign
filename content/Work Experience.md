@@ -6,14 +6,34 @@ description: A compact view of the operating areas represented by the checked-in
 
 ## Experience
 
-- I am an Architect turned product designer with a total of 1.5 years of experience in architecture and 3 years experience in product design with a total of 4.5 years of experience. 
+### Product Designer
 
-- I did my masters in design from Jamia millia islamia and got placed in Maruti Suzuki as a product designer. At Maruti Suzuki I worked on the design of the in vehicle infotainment system for maruti suzuki cars. 
+**Cardtree Technologies / Double.ai** | Present
 
-- Prior to this i was working as an junior architect in Accurate and Associates pvt.ltd and worked as an assitant architect at Colliers international. 
+Designing AI twin and voice-agent product experiences for Double.ai, including new 0 to 1 features, onboarding, analytics, pricing and billing, knowledge base, voice configuration, and workflow surfaces. The work involves close collaboration with the founder and engineering team, translating product direction into usable screens, flows, and handoff-ready decisions.
+
+### Product Designer
+
+**Maruti Suzuki** | Product design role
+
+Worked on in-vehicle infotainment and HMI design for Maruti Suzuki cars after completing a master's in design from Jamia Millia Islamia. This work shaped Jatin's approach to complex systems, interface clarity, and meticulous craft in automotive product environments.
+
+### Junior Architect
+
+**Accurate and Associates Pvt. Ltd.** | Architecture role
+
+Worked as a junior architect before moving fully into product design. This role contributed to Jatin's systems-thinking foundation and comfort with spatial, technical, and stakeholder constraints.
+
+### Assistant Architect
+
+**Colliers International** | Architecture role
+
+Worked as an assistant architect prior to the product-design transition. The architecture experience remains part of Jatin's design foundation because it trained him to reason through structure, constraints, and real-world usability.
 
 ## Total Experience
+
 - 4.5 years
 
 ## Product Design Experience
+
 - 3 years

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildFullPortfolioChunks, buildFullPortfolioSources, hashContent } from './chunks';
+import { buildAllChunks, hashContent } from './chunks';
 
 const project = {
   title: 'Sample Checkout Project',
@@ -15,35 +15,11 @@ const project = {
 
 describe('full portfolio chunk generation', () => {
   it('builds chunks from projects and site content', () => {
-    const chunks = buildFullPortfolioChunks([project]);
+    const chunks = buildAllChunks([project]);
 
     expect(chunks.some((chunk) => chunk.sourceType === 'project')).toBe(true);
     expect(chunks.some((chunk) => chunk.sourceType === 'site')).toBe(true);
     expect(chunks.every((chunk) => chunk.contentHash)).toBe(true);
-  });
-
-  it('builds source documents for indexing full portfolio content', () => {
-    const sources = buildFullPortfolioSources([project]);
-
-    expect(sources).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          type: 'project',
-          slug: 'sample-checkout-project',
-          canonicalPath: '/projects/sample-checkout-project',
-        }),
-        expect.objectContaining({
-          type: 'site',
-          slug: 'page-home',
-          canonicalPath: '/',
-        }),
-        expect.objectContaining({
-          type: 'site',
-          slug: 'page-contact',
-          canonicalPath: '/contact',
-        }),
-      ]),
-    );
   });
 
   it('hashes content deterministically', () => {
@@ -52,7 +28,7 @@ describe('full portfolio chunk generation', () => {
   });
 
   it('auto-generates searchable chat context when project frontmatter omits it', () => {
-    const chunks = buildFullPortfolioChunks([
+    const chunks = buildAllChunks([
       {
         ...project,
         chatContext: undefined,

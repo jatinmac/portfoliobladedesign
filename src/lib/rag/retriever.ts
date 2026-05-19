@@ -1,11 +1,10 @@
 import { getAllProjects, getProjectBySlug } from '../content/projects';
 import { shouldBypassContentCache } from '../content/content-loader';
 import { buildAllChunks } from './chunks';
-import { retrieveSupabaseContext } from './supabase-retriever';
 import type { RagSourceType, RetrievalChunk, RetrievalResult, RetrievalScope } from './types';
 
-const DEFAULT_MAX_CHUNKS = 6;
-const MAX_DYNAMIC_CHUNKS = 10;
+const DEFAULT_MAX_CHUNKS = 8;
+const MAX_DYNAMIC_CHUNKS = 12;
 const DEFAULT_MAX_CHUNKS_PER_PROJECT = 3;
 const APPROX_TOKENS_PER_CHUNK = 500;
 const DEFAULT_REMAINING_TOKEN_BUDGET = DEFAULT_MAX_CHUNKS * APPROX_TOKENS_PER_CHUNK;
@@ -21,6 +20,24 @@ const BROADENING_TERMS = new Set([
   'portfolio',
   'projects',
 ]);
+const QUERY_ALIASES: Record<string, string[]> = {
+  ai: ['artificial', 'intelligence', 'agent', 'agents', 'automation'],
+  agents: ['agent', 'assistant', 'assistants', 'workflow', 'workflows', 'automation'],
+  architecture: ['architect', 'architectural', 'systems', 'spatial'],
+  automotive: ['car', 'cars', 'hmi', 'infotainment', 'vehicle', 'vehicles'],
+  build: ['built', 'builder', 'building', 'created', 'launched', 'shipped'],
+  built: ['build', 'builder', 'building', 'created', 'launched', 'shipped'],
+  business: ['outcome', 'impact', 'metrics', 'growth'],
+  coding: ['engineering', 'implementation', 'prototype', 'prototyping'],
+  launch: ['launched', 'release', 'released', 'ship', 'shipped'],
+  launched: ['launch', 'release', 'released', 'ship', 'shipped'],
+  methods: ['process', 'research', 'iteration', 'feedback', 'posthog'],
+  process: ['method', 'methods', 'research', 'iteration', 'feedback', 'workflow'],
+  research: ['discovery', 'feedback', 'recordings', 'posthog', 'users'],
+  shipped: ['ship', 'shipping', 'launched', 'released', 'deployed', 'built'],
+  stack: ['tools', 'technology', 'technologies', 'platform'],
+  voice: ['call', 'calls', 'speech', 'agent', 'avatar'],
+};
 
 let chunkCache: RetrievalChunk[] | null = null;
 
@@ -35,41 +52,14 @@ export type RetrieveOptions = {
 };
 
 export async function retrievePortfolioContext(options: RetrieveOptions): Promise<RetrievalResult> {
-  const lexicalScope = resolveRetrievalScope(options);
-  const limits = resolveChunkLimits(options);
-
-  try {
-    const supabaseChunks = await retrieveSupabaseContext({
-      ...options,
-      scope: lexicalScope.scope,
-      projectSlug: lexicalScope.resolvedProjectSlug,
-      matchCount: limits.maxChunks + 2,
-      sourceTypes: options.sourceTypes ?? ['project', 'site'],
-    });
-
-    if (supabaseChunks && supabaseChunks.length > 0) {
-      const chunks = capChunksByProject(supabaseChunks, limits);
-      return {
-        mode: 'supabase_hybrid',
-        scope: lexicalScope.scope,
-        resolvedProjectSlug: lexicalScope.resolvedProjectSlug,
-        chunks,
-        representedProjects: Array.from(new Set(chunks.map((chunk) => chunk.projectSlug))),
-      };
-    }
-  } catch {
-    // Supabase RAG is a retrieval enhancement. Chat must stay available through lexical fallback.
-  }
-
-  return retrieveLexicalPortfolioContext(options, 'lexical_fallback');
+  return retrieveLexicalPortfolioContext(options);
 }
 
 export function retrieveLexicalPortfolioContext(
   options: RetrieveOptions,
-  mode: RetrievalResult['mode'] = 'lexical',
 ): RetrievalResult {
   const resolvedScope = resolveRetrievalScope(options);
-  const queryTokens = tokenize(options.query);
+  const queryTokens = expandQueryTokens(tokenize(options.query));
   const limits = resolveChunkLimits(options);
   const sourceTypes = options.sourceTypes ?? ['project', 'site'];
 
@@ -91,7 +81,7 @@ export function retrieveLexicalPortfolioContext(
   const representedProjects = Array.from(new Set(chunks.map((chunk) => chunk.projectSlug)));
 
   return {
-    mode,
+    mode: 'lexical',
     scope: resolvedScope.scope,
     resolvedProjectSlug: resolvedScope.resolvedProjectSlug,
     chunks,
@@ -145,23 +135,33 @@ function scoreChunk(chunk: RetrievalChunk, queryTokens: string[], rawQuery: stri
   ].filter(Boolean).join(' ').toLowerCase();
   const phrase = rawQuery.trim().toLowerCase();
   const haystackStems = new Set(tokenize(haystack).map(stemToken));
+  const queryBigrams = buildBigrams(tokenize(rawQuery));
 
   let score = 0;
 
   if (phrase && haystack.includes(phrase)) {
-    score += 8;
+    score += 10;
   }
+
+  queryBigrams.forEach((bigram) => {
+    if (haystack.includes(bigram)) {
+      score += 5;
+    }
+    if (chatContext.includes(bigram)) {
+      score += 6;
+    }
+  });
 
   queryTokens.forEach((token) => {
     const stem = stemToken(token);
     if (projectTitle.includes(token)) {
-      score += 6;
+      score += 7;
     }
     if (title.includes(token)) {
       score += 4;
     }
     if (chatContext.includes(token)) {
-      score += 5;
+      score += 8;
     }
     if (keywordMetadata.includes(token)) {
       score += 5;
@@ -189,8 +189,17 @@ function capChunksByProject(
   const capped: RetrievalChunk[] = [];
 
   chunks.forEach((chunk) => {
+    if (capped.length >= limits.maxChunks || counts.has(chunk.projectSlug)) {
+      return;
+    }
+
+    capped.push(chunk);
+    counts.set(chunk.projectSlug, 1);
+  });
+
+  chunks.forEach((chunk) => {
     const count = counts.get(chunk.projectSlug) ?? 0;
-    if (count >= limits.maxChunksPerProject || capped.length >= limits.maxChunks) {
+    if (capped.includes(chunk) || count >= limits.maxChunksPerProject || capped.length >= limits.maxChunks) {
       return;
     }
 
@@ -225,6 +234,22 @@ function tokenize(value: string): string[] {
         .filter((token) => token.length > 2),
     ),
   );
+}
+
+function expandQueryTokens(tokens: string[]): string[] {
+  return Array.from(
+    new Set(
+      tokens.flatMap((token) => [
+        token,
+        stemToken(token),
+        ...(QUERY_ALIASES[token] ?? []),
+      ]),
+    ),
+  ).filter((token) => token.length > 2);
+}
+
+function buildBigrams(tokens: string[]): string[] {
+  return tokens.slice(0, -1).map((token, index) => `${token} ${tokens[index + 1]}`);
 }
 
 function stemToken(token: string): string {
