@@ -376,6 +376,7 @@ export function ChatPanel({
               flexDirection="column"
               alignItems="center"
               width="100%"
+              paddingX="spacing.5"
               gap={isHomepageEmptyState ? 'spacing.0' : 'spacing.5'}
             >
               <ChatProfileIntroCard />
@@ -383,7 +384,7 @@ export function ChatPanel({
                 <Box marginTop={isHomepageEmptyState ? 'spacing.6' : 'spacing.0'}>
                   <Heading
                     as="h1"
-                    size="large"
+                    size="small"
                     weight="regular"
                     textAlign="center"
                     color="surface.text.gray.normal"
