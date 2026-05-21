@@ -151,6 +151,7 @@ function HomepageBottomWave({ isVisible }: { isVisible: boolean }) {
         preset="bottomWave"
         edgeFeather={[0.35, 0, 0, 0]}
         enableCenterElement={false}
+        gradientMapBlend={0}
       />
     </Box>
   );

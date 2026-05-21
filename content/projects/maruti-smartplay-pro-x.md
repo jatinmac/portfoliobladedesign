@@ -31,11 +31,11 @@ This infotainment system debuted with the Maruti Suzuki Victoris.
 
 ## Problem
 
-The product needed to support a next-generation 10.1-inch in-vehicle infotainment experience for production vehicles. Unlike a concept interface, the work had to account for real automotive use: glanceability, handoff to engineering, production constraints, and the expectation that the system would ship at manufacturing scale.
+The product needed to support a next-generation 10.1-inch in-vehicle infotainment experience for production vehicles. Unlike a concept interface, the work had to account for real automotive use, handoff to engineering, production constraints, and the expectation that the system would ship at manufacturing scale.
 
 ## My Role & Responsibility
 
-I contributed as a product designer on the in-vehicle experience. The role centered on automotive HMI thinking: structuring interaction flows, clarifying screen behavior, supporting engineering handoff, and keeping the interface aligned with the constraints of a production vehicle program.
+I contributed as a product designer on the in-vehicle experience. The role centered on automotive HMI thinking: structuring interaction flows, clarifying screen behavior, creating hi fidelity ui and assets and supporting engineering handoff, and keeping the interface aligned with the constraints of a production vehicle program.
 
 ## Design Process
 
