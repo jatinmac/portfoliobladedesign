@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   Heading,
+  Move,
   Text,
 } from '../../components/blade/PortfolioPrimitives';
 import { getContentDrivenPage, getContentPageHeader } from '../../lib/content/content-loader';
@@ -70,74 +71,76 @@ type ProjectCardProps = {
 
 function ProjectCard({ project, image }: ProjectCardProps) {
   return (
-    <Box
-      as="section"
-      display="flex"
-      flexDirection="column"
-      flexBasis={{ base: '100%', m: 'calc(50% - 10px)' }}
-      minWidth={{ base: '100%', m: '300px' }}
-      backgroundColor="surface.background.gray.intense"
-      borderRadius="medium"
-      overflow="hidden"
-      elevation="lowRaised"
-    >
+    <Move motionTriggers={['in-view']} type="in">
       <Box
-        height={{ base: '240px', m: '292px' }}
-        backgroundColor="surface.background.primary.subtle"
-        position="relative"
-        overflow="hidden"
-      >
-        {image ? (
-          <Image
-            src={image}
-            alt=""
-            fill
-            placeholder="blur"
-            sizes="(min-width: 768px) 50vw, 100vw"
-            style={{ objectFit: 'contain' }}
-          />
-        ) : null}
-      </Box>
-
-      <Box
+        as="section"
         display="flex"
         flexDirection="column"
-        gap="spacing.4"
-        padding="spacing.5"
-        flex="1"
+        flexBasis={{ base: '100%', m: 'calc(50% - 10px)' }}
+        minWidth={{ base: '100%', m: '300px' }}
+        backgroundColor="surface.background.gray.intense"
+        borderRadius="medium"
+        overflow="hidden"
+        elevation="lowRaised"
       >
-        <Box display="flex" flexDirection="column" gap="spacing.3">
-          <Box display="flex" flexWrap="wrap" gap="spacing.2">
-            <Badge color="primary" size="small">
-              {project.role}
-            </Badge>
-            <Badge color="primary" emphasis="subtle" size="small">
-              {project.timeline}
-            </Badge>
-          </Box>
-
-          <Box display="flex" flexDirection="column" gap="spacing.2">
-            <Heading as="h3" size="medium">
-              {project.title}
-            </Heading>
-            <Text color="surface.text.gray.muted" truncateAfterLines={4}>
-              {project.summary}
-            </Text>
-          </Box>
+        <Box
+          height={{ base: '240px', m: '292px' }}
+          backgroundColor="surface.background.primary.subtle"
+          position="relative"
+          overflow="hidden"
+        >
+          {image ? (
+            <Image
+              src={image}
+              alt=""
+              fill
+              placeholder="blur"
+              sizes="(min-width: 768px) 50vw, 100vw"
+              style={{ objectFit: 'contain' }}
+            />
+          ) : null}
         </Box>
 
-        <Box marginTop="auto">
-          <Button
-            href={`/projects/${project.slug}`}
-            variant="secondary"
-            icon={ArrowRightIcon}
-            iconPosition="right"
-            isFullWidth
-          >
-            Open case study
-          </Button>
+        <Box
+          display="flex"
+          flexDirection="column"
+          gap="spacing.4"
+          padding="spacing.5"
+          flex="1"
+        >
+          <Box display="flex" flexDirection="column" gap="spacing.3">
+            <Box display="flex" flexWrap="wrap" gap="spacing.2">
+              <Badge color="primary" size="small">
+                {project.role}
+              </Badge>
+              <Badge color="primary" emphasis="subtle" size="small">
+                {project.timeline}
+              </Badge>
+            </Box>
+
+            <Box display="flex" flexDirection="column" gap="spacing.2">
+              <Heading as="h3" size="medium">
+                {project.title}
+              </Heading>
+              <Text color="surface.text.gray.muted" truncateAfterLines={4}>
+                {project.summary}
+              </Text>
+            </Box>
+          </Box>
+
+          <Box marginTop="auto">
+            <Button
+              href={`/projects/${project.slug}`}
+              variant="secondary"
+              icon={ArrowRightIcon}
+              iconPosition="right"
+              isFullWidth
+            >
+              Open case study
+            </Button>
+          </Box>
         </Box>
       </Box>
-    </Box>
+    </Move>
   );
 }

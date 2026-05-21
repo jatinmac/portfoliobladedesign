@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import {
   createContext,
   useCallback,
@@ -17,6 +18,7 @@ import {
   IconButton,
   SidebarIcon,
 } from './blade/PortfolioPrimitives';
+import { PageTransition } from './PageTransition';
 import { PortfolioSidebar, type RecentSidebarChat } from './PortfolioSidebar';
 
 type PortfolioAppShellProps = {
@@ -46,6 +48,7 @@ export function PortfolioAppShell({ children, projects, pages }: PortfolioAppShe
   const [activeChatId, setActiveChatId] = useState('current');
   const [recentChats, setRecentChats] = useState<RecentSidebarChat[]>([]);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const storedRecentChats = parseRecentChats(
@@ -120,29 +123,54 @@ export function PortfolioAppShell({ children, projects, pages }: PortfolioAppShe
         {isMobileSidebarOpen ? null : (
           <MobileSidebarTopBar onToggle={() => setIsMobileSidebarOpen(true)} />
         )}
-        {isMobileSidebarOpen ? (
-          <Box
-            display={{ base: 'flex', m: 'none' }}
-            position="fixed"
-            top="spacing.0"
-            left="spacing.0"
-            right="spacing.0"
-            bottom="spacing.0"
-            zIndex={6}
-          >
-            <PortfolioSidebar
-              projects={projects}
-              pages={pages}
-              recentChats={recentChats}
-              activeChatId={activeChatId}
-              onNewChat={handleNewChat}
-              onSelectChat={handleSelectChat}
-              variant="mobile"
-              onRequestClose={() => setIsMobileSidebarOpen(false)}
-            />
-            <Box flex="1" minWidth="0px" backgroundColor="overlay.background.subtle" />
-          </Box>
-        ) : null}
+        <AnimatePresence initial={false}>
+          {isMobileSidebarOpen ? (
+            <m.div
+              key="mobile-sidebar-overlay"
+              data-motion
+              initial={shouldReduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: [0.4, 0, 0.2, 1] }}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 6,
+                display: 'flex',
+              }}
+            >
+              <m.div
+                data-motion
+                initial={shouldReduceMotion ? false : { x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={shouldReduceMotion ? { x: 0 } : { x: '-100%' }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
+                style={{ height: '100%' }}
+              >
+                <PortfolioSidebar
+                  projects={projects}
+                  pages={pages}
+                  recentChats={recentChats}
+                  activeChatId={activeChatId}
+                  onNewChat={handleNewChat}
+                  onSelectChat={handleSelectChat}
+                  variant="mobile"
+                  onRequestClose={() => setIsMobileSidebarOpen(false)}
+                />
+              </m.div>
+              <m.div
+                data-motion
+                initial={shouldReduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
+                style={{ flex: 1, minWidth: 0 }}
+              >
+                <Box height="100%" minWidth="0px" backgroundColor="overlay.background.subtle" />
+              </m.div>
+            </m.div>
+          ) : null}
+        </AnimatePresence>
         <Box
           position={{ base: 'relative', m: 'sticky' }}
           top={{ base: 'initial', m: 'spacing.0' }}
@@ -160,7 +188,7 @@ export function PortfolioAppShell({ children, projects, pages }: PortfolioAppShe
           />
         </Box>
         <Box flex="1" minWidth="0px">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </Box>
       </Box>
     </PortfolioShellContext.Provider>

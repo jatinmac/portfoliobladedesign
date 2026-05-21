@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { m, useReducedMotion } from 'framer-motion';
 
 import chatExperienceBackgroundImage from '../../assets/profile/background.png';
 import chatExperienceIntroImage from '../../assets/profile/chat_experience_intro.png';
@@ -21,6 +22,8 @@ import {
   Move,
   RayIcon,
   RefreshIcon,
+  Scale,
+  Stagger,
   Text,
 } from './blade/PortfolioPrimitives';
 
@@ -243,6 +246,42 @@ export function ChatPanel({
       let buffer = '';
       let parsedMetadata = false;
       let assistantMetadata: AssistantMetadata | undefined;
+      let queuedAssistantContent = '';
+      let queuedAssistantMetadata: AssistantMetadata | undefined;
+      let scheduledAssistantFrame: number | null = null;
+
+      const flushQueuedAssistantMessageUpdate = () => {
+        if (scheduledAssistantFrame !== null) {
+          window.cancelAnimationFrame(scheduledAssistantFrame);
+          scheduledAssistantFrame = null;
+        }
+
+        if (queuedAssistantContent || queuedAssistantMetadata) {
+          updateAssistantMessage(
+            assistantMessage.id,
+            queuedAssistantContent,
+            queuedAssistantMetadata,
+          );
+        }
+      };
+
+      const queueAssistantMessageUpdate = () => {
+        queuedAssistantContent = assistantContent;
+        queuedAssistantMetadata = assistantMetadata;
+
+        if (scheduledAssistantFrame !== null) {
+          return;
+        }
+
+        scheduledAssistantFrame = window.requestAnimationFrame(() => {
+          scheduledAssistantFrame = null;
+          updateAssistantMessage(
+            assistantMessage.id,
+            queuedAssistantContent,
+            queuedAssistantMetadata,
+          );
+        });
+      };
 
       try {
         const response = await fetch('/api/chat', {
@@ -291,11 +330,14 @@ export function ChatPanel({
           }
 
           if (parsedMetadata || assistantContent) {
-            updateAssistantMessage(assistantMessage.id, assistantContent, assistantMetadata);
+            queueAssistantMessageUpdate();
           }
         }
 
+        flushQueuedAssistantMessageUpdate();
       } catch (caughtError) {
+        flushQueuedAssistantMessageUpdate();
+
         if ((caughtError as Error).name === 'AbortError') {
           if (!assistantContent) {
             removeMessage(assistantMessage.id);
@@ -307,6 +349,10 @@ export function ChatPanel({
         setError(message);
         updateAssistantMessage(assistantMessage.id, `I could not answer that yet. ${message}`);
       } finally {
+        if (scheduledAssistantFrame !== null) {
+          window.cancelAnimationFrame(scheduledAssistantFrame);
+        }
+
         setIsStreaming(false);
         abortControllerRef.current = null;
       }
@@ -371,80 +417,84 @@ export function ChatPanel({
       >
         {isEmptyChat ? (
           <Fade isVisible type="inout" shouldUnmountWhenHidden>
-            <Box
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-              width="100%"
-              paddingX="spacing.5"
-              gap={isHomepageEmptyState ? 'spacing.0' : 'spacing.5'}
-            >
-              <ChatIntroHero heading={emptyStateHeading} />
+            <Scale motionTriggers={['mount']} type="in">
               <Box
-                marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'}
-                width="100%"
                 display="flex"
                 flexDirection="column"
-                gap="spacing.4"
+                alignItems="center"
+                width="100%"
+                paddingX="spacing.5"
+                gap={isHomepageEmptyState ? 'spacing.0' : 'spacing.5'}
               >
-                <ChatComposer
-                  draft={draft}
-                  error={error}
-                  isStreaming={isStreaming}
-                  placeholderSuggestions={placeholderSuggestions}
-                  onDraftChange={setDraft}
-                  onSubmit={sendMessage}
-                  onStop={handleStop}
-                  onErrorDismiss={() => setError(null)}
-                />
-              </Box>
-              {emptyStateFooter ? (
-                <Box marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'} width="100%">
-                  {emptyStateFooter}
+                <ChatIntroHero heading={emptyStateHeading} />
+                <Box
+                  marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'}
+                  width="100%"
+                  display="flex"
+                  flexDirection="column"
+                  gap="spacing.4"
+                >
+                  <ChatComposer
+                    draft={draft}
+                    error={error}
+                    isStreaming={isStreaming}
+                    placeholderSuggestions={placeholderSuggestions}
+                    onDraftChange={setDraft}
+                    onSubmit={sendMessage}
+                    onStop={handleStop}
+                    onErrorDismiss={() => setError(null)}
+                  />
                 </Box>
-              ) : null}
-            </Box>
+                {emptyStateFooter ? (
+                  <Box marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'} width="100%">
+                    {emptyStateFooter}
+                  </Box>
+                ) : null}
+              </Box>
+            </Scale>
           </Fade>
         ) : null}
 
         {messages.map((message) => (
-          <Box key={message.id} position="relative" zIndex={2}>
-            <ChatMessage
-              senderType={message.role === 'user' ? 'self' : 'other'}
-              leading={
-                message.role === 'assistant' ? (
-                  <RayIcon size="large" color="interactive.icon.primary.normal" />
-                ) : undefined
-              }
-              isLoading={message.role === 'assistant' && !message.content}
-              loadingText="Thinking..."
-              maxWidth="100%"
-              wordBreak="break-word"
-              footerActions={
-                message.role === 'assistant' && message.content && message.metadata ? (
-                  <AssistantResponseMetadata
-                    metadata={message.metadata}
-                    isDisabled={isStreaming}
-                    onFollowUp={(followUp) => void sendMessage(followUp)}
+          <AnimatedChatMessage key={message.id} role={message.role}>
+            <Box position="relative" zIndex={2}>
+              <ChatMessage
+                senderType={message.role === 'user' ? 'self' : 'other'}
+                leading={
+                  message.role === 'assistant' ? (
+                    <RayIcon size="large" color="interactive.icon.primary.normal" />
+                  ) : undefined
+                }
+                isLoading={message.role === 'assistant' && !message.content}
+                loadingText="Thinking..."
+                maxWidth="100%"
+                wordBreak="break-word"
+                footerActions={
+                  message.role === 'assistant' && message.content && message.metadata ? (
+                    <AssistantResponseMetadata
+                      metadata={message.metadata}
+                      isDisabled={isStreaming}
+                      onFollowUp={(followUp) => void sendMessage(followUp)}
+                    />
+                  ) : undefined
+                }
+              >
+                {message.content ? (
+                  <ChatMessageContent
+                    content={message.content}
+                    role={message.role}
+                    isStreaming={
+                      isStreaming &&
+                      message.role === 'assistant' &&
+                      message.id === messages[messages.length - 1]?.id
+                    }
                   />
-                ) : undefined
-              }
-            >
-              {message.content ? (
-                <ChatMessageContent
-                  content={message.content}
-                  role={message.role}
-                  isStreaming={
-                    isStreaming &&
-                    message.role === 'assistant' &&
-                    message.id === messages[messages.length - 1]?.id
-                  }
-                />
-              ) : (
-                ''
-              )}
-            </ChatMessage>
-          </Box>
+                ) : (
+                  ''
+                )}
+              </ChatMessage>
+            </Box>
+          </AnimatedChatMessage>
         ))}
       </Box>
 
@@ -722,21 +772,23 @@ function ChatComposerShell({
       zIndex={2}
     >
       {error ? (
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="flex-end"
-        >
-          <Button
-            variant="secondary"
-            size="small"
-            icon={RefreshIcon}
-            onClick={onRetry}
-            isDisabled={isRetryDisabled}
+        <Fade motionTriggers={['mount']} type="in">
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="flex-end"
           >
-            Retry
-          </Button>
-        </Box>
+            <Button
+              variant="secondary"
+              size="small"
+              icon={RefreshIcon}
+              onClick={onRetry}
+              isDisabled={isRetryDisabled}
+            >
+              Retry
+            </Button>
+          </Box>
+        </Fade>
       ) : null}
 
       {children}
@@ -772,30 +824,35 @@ function AssistantResponseMetadata({
       borderRadius="medium"
     >
       <RoundedChatChipTheme>
-        <Box
+        <Stagger
           display="flex"
           flexDirection="column"
           alignItems="flex-start"
           gap="spacing.0"
+          motionTriggers={['mount']}
+          type="in"
         >
           {followUps.map((followUp, followUpIndex) => (
-            <ChipGroup
-              key={followUp}
-              accessibilityLabel={`Follow-up chat suggestion ${followUpIndex + 1}`}
-              selectionType="single"
-              size="xsmall"
-              isDisabled={isDisabled}
-              onChange={({ values }) => {
-                const selectedFollowUp = values[0];
-                if (selectedFollowUp) {
-                  onFollowUp(selectedFollowUp);
-                }
-              }}
-            >
-              <Chip value={followUp}>{followUp}</Chip>
-            </ChipGroup>
+            <Move key={followUp} motionTriggers={['mount']} type="in">
+              <Box>
+                <ChipGroup
+                  accessibilityLabel={`Follow-up chat suggestion ${followUpIndex + 1}`}
+                  selectionType="single"
+                  size="xsmall"
+                  isDisabled={isDisabled}
+                  onChange={({ values }) => {
+                    const selectedFollowUp = values[0];
+                    if (selectedFollowUp) {
+                      onFollowUp(selectedFollowUp);
+                    }
+                  }}
+                >
+                  <Chip value={followUp}>{followUp}</Chip>
+                </ChipGroup>
+              </Box>
+            </Move>
           ))}
-        </Box>
+        </Stagger>
       </RoundedChatChipTheme>
     </Box>
   );
@@ -810,6 +867,61 @@ function RoundedChatChipTheme({ children }: { children: ReactNode }) {
 }
 
 function ChatIntroHero({ heading }: { heading?: ReactNode }) {
+  const introItems = [
+    <Move key="avatar" motionTriggers={['mount']} type="in">
+      <Box
+        width="100px"
+        height="100px"
+        borderRadius="medium"
+        overflow="hidden"
+        position="relative"
+      >
+        <Image
+          src={chatExperienceIntroImage}
+          alt="Jatin Davis"
+          width={100}
+          height={100}
+          sizes="100px"
+          priority
+        />
+      </Box>
+    </Move>,
+    <Move key="name" motionTriggers={['mount']} type="in">
+      <Box>
+        <Text size="medium" weight="semibold" color="surface.text.staticWhite.normal" textAlign="center">
+          Jatin Davis
+        </Text>
+      </Box>
+    </Move>,
+    <Move key="subtitle" motionTriggers={['mount']} type="in">
+      <Box display="flex" flexDirection="column" alignItems="center" gap="spacing.0">
+        <Text variant="caption" size="medium" color="surface.text.staticWhite.normal" textAlign="center">
+          Product Designer, Builder
+        </Text>
+        <Text variant="caption" size="small" color="surface.text.staticWhite.muted" textAlign="center">
+          @ Double AI, Ex Maruti Suzuki
+        </Text>
+      </Box>
+    </Move>,
+  ];
+
+  if (heading) {
+    introItems.push(
+      <Move key="heading" motionTriggers={['mount']} type="in">
+        <Box marginTop="spacing.2">
+          <Text
+            size="large"
+            weight="regular"
+            textAlign="center"
+            color="surface.text.staticWhite.normal"
+          >
+            {heading}
+          </Text>
+        </Box>
+      </Move>,
+    );
+  }
+
   return (
     <Box
       width="100%"
@@ -832,7 +944,7 @@ function ChatIntroHero({ heading }: { heading?: ReactNode }) {
         priority
         style={{ objectFit: 'cover' }}
       />
-      <Box
+      <Stagger
         width="100%"
         display="flex"
         flexDirection="column"
@@ -840,52 +952,39 @@ function ChatIntroHero({ heading }: { heading?: ReactNode }) {
         gap="spacing.3"
         position="relative"
         zIndex={1}
+        motionTriggers={['mount']}
+        type="in"
       >
-        <Box
-          width="100px"
-          height="100px"
-          borderRadius="medium"
-          overflow="hidden"
-          position="relative"
-        >
-          <Image
-            src={chatExperienceIntroImage}
-            alt="Jatin Davis"
-            width={100}
-            height={100}
-            sizes="100px"
-            priority
-          />
-        </Box>
-
-        <Box display="flex" flexDirection="column" alignItems="center" gap="spacing.1" width="100%">
-          <Text size="medium" weight="semibold" color="surface.text.staticWhite.normal" textAlign="center">
-            Jatin Davis
-          </Text>
-          <Box display="flex" flexDirection="column" alignItems="center" gap="spacing.0">
-            <Text variant="caption" size="medium" color="surface.text.staticWhite.normal" textAlign="center">
-              Product Designer, Builder
-            </Text>
-            <Text variant="caption" size="small" color="surface.text.staticWhite.muted" textAlign="center">
-              @ Double AI, Ex Maruti Suzuki
-            </Text>
-          </Box>
-        </Box>
-      </Box>
-
-      {heading ? (
-        <Box position="relative" zIndex={1}>
-          <Text
-            size="large"
-            weight="regular"
-            textAlign="center"
-            color="surface.text.staticWhite.normal"
-          >
-            {heading}
-          </Text>
-        </Box>
-      ) : null}
+        {introItems}
+      </Stagger>
     </Box>
+  );
+}
+
+function AnimatedChatMessage({
+  role,
+  children,
+}: {
+  role: ChatMessage['role'];
+  children: ReactNode;
+}) {
+  const shouldReduceMotion = useReducedMotion();
+  const offset = role === 'user' ? 8 : -8;
+
+  return (
+    <m.div
+      data-motion
+      initial={shouldReduceMotion ? false : { opacity: 0, x: offset, y: 4 }}
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      transition={{
+        duration: shouldReduceMotion ? 0 : 0.24,
+        delay: shouldReduceMotion || role === 'user' ? 0 : 0.06,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      style={{ width: '100%' }}
+    >
+      {children}
+    </m.div>
   );
 }
 

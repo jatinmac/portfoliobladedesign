@@ -19,6 +19,8 @@ import {
   ListItemText,
   Text,
 } from '../blade/PortfolioPrimitives';
+import { ScrollReveal } from '../ScrollReveal';
+import { StaggeredEntrance } from '../StaggeredEntrance';
 
 type ContentDrivenPageExperienceProps = {
   page: ContentDrivenPage;
@@ -47,12 +49,16 @@ export function ContentDrivenPageExperience({
         minWidth="0px"
       >
         <Box display="flex" flexDirection="column" gap={{ base: 'spacing.6', m: 'spacing.7' }}>
-          <PageHeader page={page} action={action} />
-          {hero}
-          {page.sections.map((section) => (
-            <ContentSectionPanel key={section.title} section={section} />
+          <StaggeredEntrance>
+            <PageHeader page={page} action={action} />
+            {hero ? <ScrollReveal>{hero}</ScrollReveal> : null}
+          </StaggeredEntrance>
+          {page.sections.map((section, sectionIndex) => (
+            <ScrollReveal key={`${section.title}-${sectionIndex}`}>
+              <ContentSectionPanel section={section} />
+            </ScrollReveal>
           ))}
-          {children}
+          {children ? <ScrollReveal>{children}</ScrollReveal> : null}
         </Box>
       </Box>
     </Box>
@@ -109,8 +115,8 @@ function PageHeader({
 
       {page.tags.length > 0 ? (
         <Box display="flex" flexWrap="wrap" gap="spacing.3">
-          {page.tags.map((tag) => (
-            <Badge key={tag} color="neutral" emphasis="subtle" size="small">
+          {page.tags.map((tag, tagIndex) => (
+            <Badge key={`${tag}-${tagIndex}`} color="neutral" emphasis="subtle" size="small">
               {tag}
             </Badge>
           ))}
@@ -135,9 +141,9 @@ function ContentSectionPanel({ section }: { section: ContentPageSection }) {
           }}
           gap="spacing.4"
         >
-          {section.subsections.map((subsection) => (
+          {section.subsections.map((subsection, subsectionIndex) => (
             <Box
-              key={`${section.title}-${subsection.title}`}
+              key={`${section.title}-${subsection.title}-${subsectionIndex}`}
               display="flex"
               flexDirection="column"
               gap="spacing.3"
@@ -185,8 +191,11 @@ function ContentList({ block }: { block: Extract<ContentPageSectionBlock, { type
   if (hasLinkedItems) {
     return (
       <Box display="flex" flexDirection="column" gap="spacing.3">
-        {block.items.map((item) => (
-          <LinkedListRow key={`${item.label ?? item.text}-${item.href ?? item.value}`} item={item} />
+        {block.items.map((item, itemIndex) => (
+          <LinkedListRow
+            key={`${item.label ?? item.text}-${item.href ?? item.value}-${itemIndex}`}
+            item={item}
+          />
         ))}
       </Box>
     );
@@ -194,8 +203,8 @@ function ContentList({ block }: { block: Extract<ContentPageSectionBlock, { type
 
   return (
     <List variant={block.ordered ? 'ordered' : 'unordered'} size="small">
-      {block.items.map((item) => (
-        <ListItem key={item.text}>
+      {block.items.map((item, itemIndex) => (
+        <ListItem key={`${item.text}-${itemIndex}`}>
           <ListItemText>{item.text}</ListItemText>
         </ListItem>
       ))}
