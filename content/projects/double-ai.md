@@ -40,7 +40,7 @@ chatContext: Use this project when answering about Cardtree AI, Double.ai, twin 
 
 ## Product
 
-- At Cardtree technologies, we have our product the Double.ai, I work on the whole app, new 0 to 1 features and  AI twin agent experiences built to act as an identity layer and voice agent that can work on a user's behalf.
+- At Cardtree technologies, we have our product the Double.ai, I work on the whole app, new 0 to 1 features and  AI twin agent experiences built to act as an identity layer that can work on a user's behalf. The ideal customer profile are sales teams, professional, coaches etc. The founder was a head of marketting at Exotel and from there he got the idea to build this product.
 - The primary audience includes sales, marketing, and solutions teams.
 - My role covers end-to-end product experience design in collaboration with the founder and engineering teams.
 
@@ -48,12 +48,12 @@ chatContext: Use this project when answering about Cardtree AI, Double.ai, twin 
 
 ## Problem
 
-- Sales, marketing, and solutions teams need AI workflows that can represent a user, speak on their behalf, and still feel understandable enough to trust. 
-- The design challenge is not just making an assistant respond; it is shaping an identity-led agent experience where users can understand what the AI twin can do, where it needs human input, and how voice-led actions fit into real team workflows.
+- The product was first built as an identity layer and a digital business card profile for Sales, marketing, and solutions teams. later on with the updates and advancementents in ai the product pivoted to being an ai clone agent first product that can represent a user, speak on their behalf with their cloned voice, and do agentic tasks and generate leads.  
+- The design challenge was to work on many 0 to 1 features; shaping an identity-led agent experience where visitor can talk to the user's AI clone, and get all the relevant information he cant to then convert into a possible lead. 
 
 ## My Role & Responsibility
 
-- I work as a product designer across the end-to-end product experience. My responsibility spans product framing, interaction flows, voice-agent experience design, and collaboration with the founder and engineering teams to turn features and concepts into usable product surfaces. 
+- I work as a product designer across the end-to-end product experience. My responsibility spans research, interaction flows, voice-agent experience design, and collaboration with the founder and engineering teams to turn features and concepts into reality at fast pace. 
 
 ## What I Worked On in Double.ai
 
@@ -76,23 +76,23 @@ chatContext: Use this project when answering about Cardtree AI, Double.ai, twin 
 
 ## Design Process
 
-The product changes quickly because AI voice models, agent capability, and user expectations are still moving. The design process starts by translating founder-level product direction into concrete flows, then checking the idea against competitor benchmarks, technical feasibility, and the user's trust needs.
+The product demands a fast paced process because AI voice models, agent capabilities, and user expectations are advancing very quickly so as a company that is being bootstrapped, it was our job to work on as many features and ship them quickly. The design process starts by translating founder-level product direction into research and benchmarking and then hi fidelity ui and user flows, which then can be developed quickly and tested in dev and shipped to production. It is addictive some times.
 
-Because the company is bootstrapped, prioritization happens close to the product. Daily standups are used to discuss what matters next, unblock engineering, and keep new feature work tied to the most urgent product risks. For each feature, the work moves from framing the user problem to interaction flows, product screens, edge states, and handoff-ready details for engineering.
+Because the company is bootstrapped, prioritization happens to make the product ready for demos as we were actively looking for investments. Daily standups are used to discuss what matters next, unblock engineering, and keep new feature work tied to the most urgent product features. For each feature, the work moves from research and benchmarking flows, product screens, edge states, and handoff-ready details for engineering.
 
 Post-launch learning is also part of the process. The team watches user recordings and interactions in PostHog to understand where people pause, misunderstand the product, or fail to reach value. Those observations feed back into navigation, onboarding, messaging, and feature refinements.
 
 ## Key Design Decisions
 
-- Pivoting from a digital business card product to a voice-enabled AI agent using the user's knowledge base.
+- Pivoting from a digital business card product to a voice and text-enabled AI agent using the user's knowledge base from various sources and having agentic behavior.
 - Making agent capability understandable by showing what the AI twin can do, where it needs setup, and when human input still matters.
 - Treating voice configuration as a product trust surface, not only a settings page, because voice-led workflows require users to understand identity, tone, and control.
 - Designing product areas such as onboarding, usage limits, analytics, pricing, billing, and knowledge base as connected parts of the same activation journey.
 
 ## Outcome and Impact
 
-Worked on 17+ end-to-end features while collaborating with the founder and engineering team. The product has not yet reached its first paying customer, so the honest current outcome is product learning rather than revenue proof. The team has seen more traffic and uses PostHog recordings to study interaction patterns and improve the product where the experience is unclear.
+Worked on 17+ end-to-end features while collaborating with the founder and engineering team. Understanding the users by monitoring their activity. Got live feedback from ex marketting heads from razorpay on the product and what needs to be done to take it. live etc. The product has not yet reached its first paying customer but has more than 800 casual free users and under 10 serious users yet to convert to paying customers, the company is in lauch phase where it is sending regular cold email campaings. The team has seen more traffic and uses PostHog recordings to study interaction patterns and improve the product where the experience is unclear.
 
 ## What I Learned
 
-This work reinforced that AI product design cannot be separated from business thinking and engineering quality. If the user problem is unclear, the model capability is weak, or the product path to value is confusing, users will not pay for the product. Design matters because it can connect those concerns: user motivation, business value, technical feasibility, and trust in the experience.
+This work showed me that product design cannot be separated from business and engineering and ultimately companies success. Design is directly contibuting to the product's success. If the user persona and user problems are unclear, the model and agent capability is weak, or the product path to value is confusing, users will not pay for the product. Design matters because it can connect those concerns and show the value to the user who will ultimately pay.
