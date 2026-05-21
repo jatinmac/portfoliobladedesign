@@ -47,6 +47,7 @@ describe('central content loader', () => {
         expect.stringContaining('Architect turned product designer'),
       ]),
     );
+    expect(getChatConfig().placeholderSuggestions).toContain("Ask about Jatin's resume?");
     expect(getChatConfig().followUps.project).toContain('What tradeoffs shaped this project?');
   });
 });
