@@ -24,7 +24,7 @@ import { ChatPanel } from './ChatPanel';
 import { usePortfolioShell } from './PortfolioAppShell';
 
 type HomepageChatExperienceProps = {
-  starterPrompts: string[];
+  placeholderSuggestions: string[];
   projects: ProjectSummary[];
   emptyStateHeading: string;
 };
@@ -39,7 +39,7 @@ const projectImagesByFileName: Record<string, StaticImageData> = {
 };
 
 export function HomepageChatExperience({
-  starterPrompts,
+  placeholderSuggestions,
   projects,
   emptyStateHeading,
 }: HomepageChatExperienceProps) {
@@ -115,7 +115,7 @@ export function HomepageChatExperience({
           <ChatPanel
             scope="portfolio"
             storageKey={`portfolio-chat-${activeChatId}`}
-            starterPrompts={starterPrompts}
+            placeholderSuggestions={placeholderSuggestions}
             emptyStateSpacing="homepage"
             emptyStateHeading={emptyStateHeading}
             emptyStateFooter={<HomepageProjectCarousel items={carouselItems} />}
@@ -199,12 +199,12 @@ function HomepageProjectCarousel({ items }: HomepageProjectCarouselProps) {
       display="flex"
       flexDirection="column"
       alignSelf="stretch"
-      gap="spacing.3"
+      gap="spacing.1"
       minWidth="0px"
       width="100%"
     >
       <Text variant="caption" size="medium" color="surface.text.gray.muted">
-        Projects
+        Browse my projects
       </Text>
       <Carousel
         accessibilityLabel="Project image carousel"

@@ -1,6 +1,8 @@
-starterPrompts:
-  - What has Jatin designed and shipped?
-  - How does Jatin approach product design?
+placeholderSuggestions:
+  - Ask about Jatin's resume?
+  - Ask about Double AI?
+  - Ask about work in Maruti Suzuki?
+  - Ask about interests?
 
 
 followUps:

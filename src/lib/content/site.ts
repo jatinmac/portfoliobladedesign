@@ -29,8 +29,8 @@ export function getNavigationItems(): NavigationItem[] {
   return getContentNavigationItems();
 }
 
-export function getStarterPrompts(): string[] {
-  return getChatConfig().starterPrompts;
+export function getPlaceholderSuggestions(): string[] {
+  return getChatConfig().placeholderSuggestions;
 }
 
 export function getFollowUpConfig() {
@@ -42,7 +42,6 @@ export function getSiteMetadata() {
 }
 
 export const navigationItems: NavigationItem[] = getNavigationItems();
-export const starterPrompts = getStarterPrompts();
 export const expertiseChips = getExpertiseChips();
 export const experienceItems: ExperienceItem[] = getExperienceItems();
 export const contactLinks: ContactLink[] = getContactLinks();

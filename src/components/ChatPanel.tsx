@@ -4,6 +4,7 @@ import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import chatExperienceBackgroundImage from '../../assets/profile/background.png';
 import chatExperienceIntroImage from '../../assets/profile/chat_experience_intro.png';
 import type { AssistantMetadata, ChatMessage as ApiChatMessage } from '../lib/chat/types';
 import { portfolioColorScheme, portfolioTheme } from './blade/portfolio-theme';
@@ -17,7 +18,6 @@ import {
   Chip,
   ChipGroup,
   Fade,
-  Heading,
   Move,
   RayIcon,
   RefreshIcon,
@@ -28,7 +28,7 @@ type ChatPanelProps = {
   scope: 'portfolio' | 'project';
   storageKey: string;
   projectSlug?: string;
-  starterPrompts?: string[];
+  placeholderSuggestions?: string[];
   emptyStateHeading?: ReactNode;
   emptyStateFooter?: ReactNode;
   emptyStateSpacing?: 'default' | 'homepage';
@@ -60,7 +60,7 @@ export function ChatPanel({
   scope,
   storageKey,
   projectSlug,
-  starterPrompts = [],
+  placeholderSuggestions = [],
   emptyStateHeading,
   emptyStateFooter,
   emptyStateSpacing = 'default',
@@ -379,20 +379,7 @@ export function ChatPanel({
               paddingX="spacing.5"
               gap={isHomepageEmptyState ? 'spacing.0' : 'spacing.5'}
             >
-              <ChatProfileIntroCard />
-              {emptyStateHeading ? (
-                <Box marginTop={isHomepageEmptyState ? 'spacing.6' : 'spacing.0'}>
-                  <Heading
-                    as="h1"
-                    size="small"
-                    weight="regular"
-                    textAlign="center"
-                    color="surface.text.gray.normal"
-                  >
-                    {emptyStateHeading}
-                  </Heading>
-                </Box>
-              ) : null}
+              <ChatIntroHero heading={emptyStateHeading} />
               <Box
                 marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'}
                 width="100%"
@@ -404,19 +391,15 @@ export function ChatPanel({
                   draft={draft}
                   error={error}
                   isStreaming={isStreaming}
+                  placeholderSuggestions={placeholderSuggestions}
                   onDraftChange={setDraft}
                   onSubmit={sendMessage}
                   onStop={handleStop}
                   onErrorDismiss={() => setError(null)}
                 />
-                <StarterPromptActions
-                  prompts={starterPrompts}
-                  isDisabled={isStreaming}
-                  onSelectPrompt={(prompt) => void sendMessage(prompt)}
-                />
               </Box>
               {emptyStateFooter ? (
-                <Box marginTop={isHomepageEmptyState ? 'spacing.3' : 'spacing.0'} width="100%">
+                <Box marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'} width="100%">
                   {emptyStateFooter}
                 </Box>
               ) : null}
@@ -476,6 +459,7 @@ export function ChatPanel({
               draft={draft}
               error={error}
               isStreaming={isStreaming}
+              placeholderSuggestions={placeholderSuggestions}
               onDraftChange={setDraft}
               onSubmit={sendMessage}
               onStop={handleStop}
@@ -492,6 +476,7 @@ type ChatComposerProps = {
   draft: string;
   error: string | null;
   isStreaming: boolean;
+  placeholderSuggestions: string[];
   onDraftChange: (value: string) => void;
   onSubmit: (value: string) => void | Promise<void>;
   onStop: () => void;
@@ -502,11 +487,93 @@ function ChatComposer({
   draft,
   error,
   isStreaming,
+  placeholderSuggestions,
   onDraftChange,
   onSubmit,
   onStop,
   onErrorDismiss,
 }: ChatComposerProps) {
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [visiblePlaceholderWordCount, setVisiblePlaceholderWordCount] = useState(0);
+  const fallbackPlaceholder = "Ask anything about Jatin's work";
+  const activePlaceholderSuggestions = placeholderSuggestions.length > 0
+    ? placeholderSuggestions
+    : [fallbackPlaceholder];
+  const activePlaceholder =
+    activePlaceholderSuggestions[placeholderIndex % activePlaceholderSuggestions.length] ??
+    fallbackPlaceholder;
+  const activePlaceholderWords = useMemo(
+    () => activePlaceholder.split(/\s+/).filter(Boolean),
+    [activePlaceholder],
+  );
+  const shouldShowAnimatedPlaceholder = !draft && !isStreaming;
+
+  useEffect(() => {
+    if (draft || isStreaming || activePlaceholderSuggestions.length <= 1) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setPlaceholderIndex((currentIndex) => (currentIndex + 1) % activePlaceholderSuggestions.length);
+    }, 3200);
+
+    return () => window.clearInterval(intervalId);
+  }, [activePlaceholderSuggestions.length, draft, isStreaming]);
+
+  useEffect(() => {
+    if (!shouldShowAnimatedPlaceholder) {
+      setVisiblePlaceholderWordCount(0);
+      return undefined;
+    }
+
+    setVisiblePlaceholderWordCount(0);
+    const intervalId = window.setInterval(() => {
+      setVisiblePlaceholderWordCount((currentCount) => {
+        if (currentCount >= activePlaceholderWords.length) {
+          window.clearInterval(intervalId);
+          return currentCount;
+        }
+
+        return currentCount + 1;
+      });
+    }, 120);
+
+    return () => window.clearInterval(intervalId);
+  }, [activePlaceholder, activePlaceholderWords.length, shouldShowAnimatedPlaceholder]);
+
+  useEffect(() => {
+    if (!shouldShowAnimatedPlaceholder) {
+      return undefined;
+    }
+
+    const handleTabAccept = (event: KeyboardEvent) => {
+      if (
+        event.key !== 'Tab' ||
+        event.shiftKey ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const activeElement = document.activeElement;
+      if (
+        !(activeElement instanceof HTMLTextAreaElement) ||
+        activeElement.getAttribute('aria-label') !== "Ask about Jatin's work"
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      onDraftChange(activePlaceholder);
+    };
+
+    window.addEventListener('keydown', handleTabAccept, { capture: true });
+
+    return () => window.removeEventListener('keydown', handleTabAccept, { capture: true });
+  }, [activePlaceholder, onDraftChange, shouldShowAnimatedPlaceholder]);
+
   const handleChange = (input: ChatInputPayload) => {
     const nextDraft = readChatInputValue(input, draft);
     if (nextDraft !== draft) {
@@ -520,10 +587,15 @@ function ChatComposer({
   };
 
   return (
-    <Box width="620px" maxWidth={{ base: 'calc(100% - 8px)', m: '100%' }} marginX="auto">
+    <Box
+      width="620px"
+      maxWidth={{ base: 'calc(100% - 8px)', m: '100%' }}
+      marginX="auto"
+      position="relative"
+    >
       <ChatInput
         accessibilityLabel="Ask about Jatin's work"
-        placeholder="Ask anything about Jatin's work"
+        placeholder={shouldShowAnimatedPlaceholder ? '' : fallbackPlaceholder}
         value={draft}
         onChange={handleChange}
         onSubmit={handleSubmit}
@@ -533,6 +605,52 @@ function ChatComposer({
         errorText={error ?? undefined}
         onErrorDismiss={onErrorDismiss}
       />
+      {shouldShowAnimatedPlaceholder ? (
+        <Box
+          position="absolute"
+          top="spacing.5"
+          left="spacing.5"
+          right="72px"
+          zIndex={2}
+          overflow="hidden"
+          pointerEvents="none"
+        >
+          <Box display="flex" alignItems="center" gap="spacing.2" overflow="hidden">
+            <Box display="flex" alignItems="center" gap="spacing.1" overflow="hidden">
+              {activePlaceholderWords
+                .slice(0, visiblePlaceholderWordCount)
+                .map((word, wordIndex) => (
+                  <Move
+                    key={`${activePlaceholder}-${word}-${wordIndex}`}
+                    motionTriggers={['mount']}
+                    type="in"
+                  >
+                    <Box display="inline-block">
+                      <Text as="span" variant="body" size="medium" color="surface.text.staticBlack.muted">
+                        {word}
+                      </Text>
+                    </Box>
+                  </Move>
+                ))}
+            </Box>
+            {visiblePlaceholderWordCount >= activePlaceholderWords.length ? (
+              <Box
+                borderRadius="small"
+                borderColor="surface.border.gray.muted"
+                borderWidth="thin"
+                borderStyle="solid"
+                paddingX="spacing.2"
+                paddingY="spacing.1"
+                flexShrink={0}
+              >
+                <Text variant="caption" size="small" color="surface.text.gray.disabled">
+                  Tab
+                </Text>
+              </Box>
+            ) : null}
+          </Box>
+        </Box>
+      ) : null}
     </Box>
   );
 }
@@ -626,43 +744,6 @@ function ChatComposerShell({
   );
 }
 
-type StarterPromptActionsProps = {
-  prompts: string[];
-  isDisabled: boolean;
-  onSelectPrompt: (prompt: string) => void;
-};
-
-function StarterPromptActions({ prompts, isDisabled, onSelectPrompt }: StarterPromptActionsProps) {
-  if (prompts.length === 0) {
-    return null;
-  }
-
-  return (
-    <RoundedChatChipTheme>
-      <Box width="max-content">
-        <ChipGroup
-          accessibilityLabel="Starter chat suggestions"
-          selectionType="single"
-          size="xsmall"
-          isDisabled={isDisabled}
-          onChange={({ values }) => {
-            const selectedPrompt = values[0];
-            if (selectedPrompt) {
-              onSelectPrompt(selectedPrompt);
-            }
-          }}
-        >
-          {prompts.map((prompt) => (
-            <Chip key={prompt} value={prompt}>
-              {prompt}
-            </Chip>
-          ))}
-        </ChipGroup>
-      </Box>
-    </RoundedChatChipTheme>
-  );
-}
-
 type AssistantResponseMetadataProps = {
   metadata: AssistantMetadata;
   isDisabled: boolean;
@@ -728,18 +809,38 @@ function RoundedChatChipTheme({ children }: { children: ReactNode }) {
   );
 }
 
-function ChatProfileIntroCard() {
+function ChatIntroHero({ heading }: { heading?: ReactNode }) {
   return (
     <Box
       width="100%"
-      maxWidth="206px"
+      maxWidth="620px"
       display="flex"
       flexDirection="column"
       alignItems="center"
-      gap="spacing.3"
+      gap="spacing.5"
+      padding="spacing.5"
+      backgroundColor="surface.background.primary.intense"
+      borderRadius="large"
       position="relative"
+      overflow="hidden"
     >
-      <Box width="100px" height="100px" position="relative" zIndex={1}>
+      <Image
+        src={chatExperienceBackgroundImage}
+        alt=""
+        fill
+        sizes="620px"
+        priority
+        style={{ objectFit: 'cover' }}
+      />
+      <Box
+        width="100%"
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        gap="spacing.3"
+        position="relative"
+        zIndex={1}
+      >
         <Box
           width="100px"
           height="100px"
@@ -756,29 +857,34 @@ function ChatProfileIntroCard() {
             priority
           />
         </Box>
-      </Box>
 
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        gap="spacing.2"
-        position="relative"
-        zIndex={1}
-        width="100%"
-      >
-        <Text size="medium" weight="semibold" color="surface.text.gray.normal" textAlign="center">
-          Jatin Davis
-        </Text>
-        <Box display="flex" flexDirection="column" alignItems="center" gap="spacing.1">
-          <Text variant="caption" size="medium" color="surface.text.gray.normal" textAlign="center">
-            Product Builder, Designer
+        <Box display="flex" flexDirection="column" alignItems="center" gap="spacing.1" width="100%">
+          <Text size="medium" weight="semibold" color="surface.text.staticWhite.normal" textAlign="center">
+            Jatin Davis
           </Text>
-          <Text variant="caption" size="small" color="surface.text.gray.muted" textAlign="center">
-            @ Double AI, Ex Maruti Suzuki
-          </Text>
+          <Box display="flex" flexDirection="column" alignItems="center" gap="spacing.0">
+            <Text variant="caption" size="medium" color="surface.text.staticWhite.normal" textAlign="center">
+              Product Designer, Builder
+            </Text>
+            <Text variant="caption" size="small" color="surface.text.staticWhite.muted" textAlign="center">
+              @ Double AI, Ex Maruti Suzuki
+            </Text>
+          </Box>
         </Box>
       </Box>
+
+      {heading ? (
+        <Box position="relative" zIndex={1}>
+          <Text
+            size="large"
+            weight="regular"
+            textAlign="center"
+            color="surface.text.staticWhite.normal"
+          >
+            {heading}
+          </Text>
+        </Box>
+      ) : null}
     </Box>
   );
 }

@@ -46,7 +46,7 @@ export type SiteMetadataContent = {
 };
 
 export type ChatConfig = {
-  starterPrompts: string[];
+  placeholderSuggestions: string[];
   followUps: {
     project: string[];
     designSystem: string[];

@@ -47,8 +47,8 @@ function main(): void {
 
   try {
     const config = getChatConfig();
-    if (config.starterPrompts.length === 0) {
-      errors.push('content/chat-config.yaml: starterPrompts must contain at least one prompt.');
+    if (config.placeholderSuggestions.length === 0) {
+      errors.push('content/chat-config.yaml: placeholderSuggestions must contain at least one suggestion.');
     }
   } catch (error) {
     errors.push(`content/chat-config.yaml: ${readErrorMessage(error)}`);

@@ -24,7 +24,7 @@ const IGNORED_CONTENT_PAGE_FILES = new Set(['README.md']);
 const DEFAULT_CONTENT_PAGE_ORDER = ['about', 'contact', 'projects', 'experience'];
 const SAFE_PAGE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DEFAULT_CHAT_CONFIG: ChatConfig = {
-  starterPrompts: [],
+  placeholderSuggestions: [],
   followUps: {
     project: [],
     designSystem: [],
@@ -132,7 +132,7 @@ export function getChatConfig(): ChatConfig {
   const sourcePath = path.join(CONTENT_DIRECTORY, 'chat-config.yaml');
   const parsed = matter(`---\n${fs.readFileSync(sourcePath, 'utf8')}\n---\n`).data;
   const config: ChatConfig = {
-    starterPrompts: readStringArray(parsed.starterPrompts),
+    placeholderSuggestions: readStringArray(parsed.placeholderSuggestions),
     followUps: {
       project: readStringArray(readRecord(parsed.followUps).project),
       designSystem: readStringArray(readRecord(parsed.followUps).designSystem),
