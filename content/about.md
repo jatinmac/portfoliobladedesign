@@ -4,7 +4,7 @@ name: Jatin Davis
 title: Jatin Davis Portfolio
 headline: Jatin Davis
 description: Designing for users and business outcome. Solving user problems is vital for business success.
-homeHeadline: Designing and building for users and business success with a product mindset and experience in B2B and B2C products.
+homeHeadline: As a product designer, I believe that Value is everything and what we work towards.
 tags:
   - Product builder
   - Design Builder
