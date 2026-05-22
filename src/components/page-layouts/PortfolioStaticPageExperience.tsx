@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { Box, Heading, Text } from '../blade/PortfolioPrimitives';
+import { StaggeredEntrance } from '../StaggeredEntrance';
 
 type PortfolioStaticPageExperienceProps = {
   title: string;
@@ -28,25 +29,27 @@ export function PortfolioStaticPageExperience({
         minWidth="0px"
       >
         <Box display="flex" flexDirection="column" gap={{ base: 'spacing.6', m: 'spacing.8' }}>
-          <Box display="flex" flexDirection="column" gap="spacing.3" maxWidth="820px">
-            <Text
-              variant="caption"
-              size="medium"
-              weight="semibold"
-              color="interactive.text.primary.normal"
-            >
-              {eyebrow}
-            </Text>
-            <Heading as="h1" size="2xlarge">
-              {title}
-            </Heading>
-            <Text size="large" color="surface.text.gray.muted">
-              {description}
-            </Text>
-          </Box>
-          <Box display="flex" flexDirection="column" gap="spacing.6">
-            {children}
-          </Box>
+          <StaggeredEntrance>
+            <Box display="flex" flexDirection="column" gap="spacing.3" maxWidth="820px">
+              <Text
+                variant="caption"
+                size="medium"
+                weight="semibold"
+                color="interactive.text.primary.normal"
+              >
+                {eyebrow}
+              </Text>
+              <Heading as="h1" size="2xlarge">
+                {title}
+              </Heading>
+              <Text size="large" color="surface.text.gray.muted">
+                {description}
+              </Text>
+            </Box>
+            <Box display="flex" flexDirection="column" gap="spacing.6">
+              {children}
+            </Box>
+          </StaggeredEntrance>
         </Box>
       </Box>
     </Box>

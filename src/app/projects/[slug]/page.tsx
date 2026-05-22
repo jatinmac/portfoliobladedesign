@@ -8,10 +8,14 @@ import {
   Button,
   ExternalLinkIcon,
   Heading,
+  Move,
+  Stagger,
   Text,
 } from '../../../components/blade/PortfolioPrimitives';
 import { MarkdownTableBlock, renderInlineMarkdown } from '../../../components/MarkdownRenderer';
 import { ProjectImageCarousel } from '../../../components/ProjectImageCarousel';
+import { ScrollReveal } from '../../../components/ScrollReveal';
+import { StaggeredEntrance } from '../../../components/StaggeredEntrance';
 import { parseMarkdownBlocks, type MarkdownBlock } from '../../../lib/content/markdown';
 import { resolveProjectImage, resolveProjectImages } from '../../../lib/content/project-images';
 import { getAllProjects, getProjectBySlug } from '../../../lib/content/projects';
@@ -80,79 +84,87 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
         marginX="auto"
         minWidth="0px"
       >
-        <Box display="flex" flexDirection="column" gap="spacing.4" minWidth="0px">
-          <Box
-            display="flex"
-            flexDirection={{ base: 'column', m: 'row' }}
-            justifyContent="space-between"
-            alignItems={{ base: 'flex-start', m: 'flex-start' }}
-            gap="spacing.4"
-            minWidth="0px"
-          >
-            <Box display="flex" flexDirection="column" gap="spacing.2" maxWidth="760px">
-              <Heading as="h1" size="2xlarge">
-                {project.title}
-              </Heading>
-              <Text color="surface.text.gray.muted">{project.summary}</Text>
+        <StaggeredEntrance>
+          <Box display="flex" flexDirection="column" gap="spacing.4" minWidth="0px">
+            <Box
+              display="flex"
+              flexDirection={{ base: 'column', m: 'row' }}
+              justifyContent="space-between"
+              alignItems={{ base: 'flex-start', m: 'flex-start' }}
+              gap="spacing.4"
+              minWidth="0px"
+            >
+              <Box display="flex" flexDirection="column" gap="spacing.2" maxWidth="760px">
+                <Heading as="h1" size="2xlarge">
+                  {project.title}
+                </Heading>
+                <Text color="surface.text.gray.muted">{project.summary}</Text>
+              </Box>
+
+              {project.productUrl ? (
+                <Button
+                  href={project.productUrl}
+                  target={project.productUrl.startsWith('http') ? '_blank' : undefined}
+                  rel={project.productUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  variant="primary"
+                  icon={ExternalLinkIcon}
+                  iconPosition="right"
+                  marginTop={{ base: 'spacing.0', m: 'spacing.1' }}
+                >
+                  View Product
+                </Button>
+              ) : null}
             </Box>
 
-            {project.productUrl ? (
-              <Button
-                href={project.productUrl}
-                target={project.productUrl.startsWith('http') ? '_blank' : undefined}
-                rel={project.productUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-                variant="primary"
-                icon={ExternalLinkIcon}
-                iconPosition="right"
-                marginTop={{ base: 'spacing.0', m: 'spacing.1' }}
-              >
-                View Product
-              </Button>
+            {primaryTags.length > 0 ? (
+              <Box display="flex" flexWrap="wrap" gap="spacing.2">
+                {primaryTags.map((tag) => (
+                  <Badge key={tag} color="neutral" size="small">
+                    {tag}
+                  </Badge>
+                ))}
+              </Box>
             ) : null}
           </Box>
 
-          {primaryTags.length > 0 ? (
-            <Box display="flex" flexWrap="wrap" gap="spacing.2">
-              {primaryTags.map((tag) => (
-                <Badge key={tag} color="neutral" size="small">
-                  {tag}
-                </Badge>
-              ))}
-            </Box>
-          ) : null}
-        </Box>
+          <ProjectHeroMedia
+            projectSlug={project.slug}
+            projectTitle={project.title}
+            image={projectImage}
+            images={projectImageCarousel}
+          />
+        </StaggeredEntrance>
 
-        <ProjectHeroMedia
-          projectSlug={project.slug}
-          projectTitle={project.title}
-          image={projectImage}
-          images={projectImageCarousel}
+        <ProjectInfoGrid
+          product={project.platform ?? project.stack?.[0] ?? 'Project'}
+          role={project.role}
+          timeline={project.timeline}
         />
 
-        <Box
-          display="grid"
-          gridTemplateColumns={{ base: '1fr', m: 'repeat(3, 1fr)' }}
-          gap={{ base: 'spacing.4', m: 'spacing.5' }}
-        >
-          <ProjectInfoCard title="Product" value={project.platform ?? project.stack?.[0] ?? 'Project'} />
-          <ProjectInfoCard title="My Role & Responsibility" value={project.role} />
-          <ProjectInfoCard title="Timeline" value={project.timeline} />
-        </Box>
-
-        {designProcessSection ? <ProjectSectionCard section={designProcessSection} /> : null}
+        {designProcessSection ? (
+          <ScrollReveal>
+            <ProjectSectionCard section={designProcessSection} />
+          </ScrollReveal>
+        ) : null}
 
         {introBlocks.length > 0 ? (
-          <ProjectSectionCard
-            section={{
-              title: 'Overview',
-              blocks: introBlocks,
-            }}
-          />
+          <ScrollReveal>
+            <ProjectSectionCard
+              section={{
+                title: 'Overview',
+                blocks: introBlocks,
+              }}
+            />
+          </ScrollReveal>
         ) : null}
 
         <Box display="flex" flexDirection="column" gap={{ base: 'spacing.4', m: 'spacing.5' }}>
           {detailSections.map((section) => {
-            const sectionCard = <ProjectSectionCard key={section.title} section={section} />;
+            const sectionCard = (
+              <ScrollReveal key={section.title}>
+                <ProjectSectionCard section={section} />
+              </ScrollReveal>
+            );
 
             if (section.title !== 'Product' || pitchDeckImageCarousel.length === 0) {
               return sectionCard;
@@ -161,11 +173,13 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             return (
               <Box key={section.title} display="flex" flexDirection="column" gap={{ base: 'spacing.4', m: 'spacing.5' }}>
                 {sectionCard}
-                <ProjectPitchDeckCarousel
-                  projectSlug={project.slug}
-                  projectTitle={project.title}
-                  images={pitchDeckImageCarousel}
-                />
+                <ScrollReveal>
+                  <ProjectPitchDeckCarousel
+                    projectSlug={project.slug}
+                    projectTitle={project.title}
+                    images={pitchDeckImageCarousel}
+                  />
+                </ScrollReveal>
               </Box>
             );
           })}
@@ -252,7 +266,37 @@ type ProjectInfoCardProps = {
   value: string;
 };
 
-function ProjectInfoCard({ title, value }: ProjectInfoCardProps) {
+function ProjectInfoGrid({
+  product,
+  role,
+  timeline,
+}: {
+  product: string;
+  role: string;
+  timeline: string;
+}) {
+  return (
+    <Stagger
+      display="grid"
+      gridTemplateColumns={{ base: '1fr', m: 'repeat(3, 1fr)' }}
+      gap={{ base: 'spacing.4', m: 'spacing.5' }}
+      motionTriggers={['mount']}
+      type="in"
+    >
+      <Move motionTriggers={['mount']} type="in">
+        {renderProjectInfoCard({ title: 'Product', value: product })}
+      </Move>
+      <Move motionTriggers={['mount']} type="in">
+        {renderProjectInfoCard({ title: 'My Role & Responsibility', value: role })}
+      </Move>
+      <Move motionTriggers={['mount']} type="in">
+        {renderProjectInfoCard({ title: 'Timeline', value: timeline })}
+      </Move>
+    </Stagger>
+  );
+}
+
+function renderProjectInfoCard({ title, value }: ProjectInfoCardProps) {
   return (
     <Box
       display="flex"

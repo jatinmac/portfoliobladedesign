@@ -10,3 +10,12 @@ body {
   padding: 0;
   font-family: 'Inter', 'Inter Fallback Arial', Arial, sans-serif;
 }
+
+*:focus-visible {
+  outline-offset: 2px;
+  transition: outline-offset 120ms ease;
+}
+
+[data-motion] {
+  will-change: transform, opacity;
+}

@@ -9,6 +9,7 @@ import { portfolioColorScheme, portfolioTheme } from './blade/portfolio-theme';
 import {
   ActionList,
   ActionListItem,
+  AnimateInteractions,
   BladeProvider,
   Box,
   Button,
@@ -21,7 +22,9 @@ import {
   MailIcon,
   MessageSquareIcon,
   Move,
+  Scale,
   SidebarIcon,
+  Slide,
   Text,
 } from './blade/PortfolioPrimitives';
 
@@ -269,27 +272,39 @@ export function PortfolioSidebar({
                 />
               </Box>
 
-              {isChatsExpanded ? (
-                <Box
-                  width="100%"
-                  minWidth="0px"
-                  borderRadius="small"
-                  overflow="hidden"
+              <Slide
+                isVisible={isChatsExpanded}
+                type="inout"
+                direction="top"
+                fromOffset="100%"
+                shouldUnmountWhenHidden
+              >
+                <Move
+                  key={recentChats.map((chat) => chat.id).join(':') || 'empty-recent-chats'}
+                  motionTriggers={['mount']}
+                  type="in"
                 >
-                  <ActionList>
-                    {recentChats.map((chat) => (
-                      <ActionListItem
-                        key={chat.id}
-                        title={chat.title}
-                        value={chat.id}
-                        isSelected={chat.id === activeChatId}
-                        onClick={() => onSelectChat(chat.id)}
-                        data-analytics-section="sidebar-chats"
-                      />
-                    ))}
-                  </ActionList>
-                </Box>
-              ) : null}
+                  <Box
+                    width="100%"
+                    minWidth="0px"
+                    borderRadius="small"
+                    overflow="hidden"
+                  >
+                    <ActionList>
+                      {recentChats.map((chat) => (
+                        <ActionListItem
+                          key={chat.id}
+                          title={chat.title}
+                          value={chat.id}
+                          isSelected={chat.id === activeChatId}
+                          onClick={() => onSelectChat(chat.id)}
+                          data-analytics-section="sidebar-chats"
+                        />
+                      ))}
+                    </ActionList>
+                  </Box>
+                </Move>
+              </Slide>
             </Box>
 
             <Box
@@ -348,7 +363,13 @@ export function PortfolioSidebar({
                 />
               </Box>
 
-              {isPagesExpanded ? (
+              <Slide
+                isVisible={isPagesExpanded}
+                type="inout"
+                direction="top"
+                fromOffset="100%"
+                shouldUnmountWhenHidden
+              >
                 <Box display="flex" flexDirection="column" gap="spacing.0">
                   {sidebarPages.map((item) => (
                     <SidebarTabLink
@@ -358,7 +379,7 @@ export function PortfolioSidebar({
                     />
                   ))}
                 </Box>
-              ) : null}
+              </Slide>
             </Box>
 
             <SidebarLinksPanel hasContactPage={hasContactPage} />
@@ -403,38 +424,52 @@ type SidebarTabLinkProps = {
 };
 
 function SidebarTabLink({ href, label }: SidebarTabLinkProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
-    // Blade Link only accepts string children here; NextLink keeps the whole tab clickable.
-    <NextLink
-      href={href}
-      style={{ display: 'block', textDecoration: 'none' }}
-    >
-      <Box
-        width="100%"
-        height="36px"
-        display="flex"
-        alignItems="center"
-        minWidth="0px"
-        padding="spacing.3"
-        borderRadius="small"
-        backgroundColor={isHovered ? 'surface.background.primary.subtle' : 'transparent'}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <Text
-          as="span"
-          variant="body"
-          size="medium"
-          weight="regular"
-          color="surface.text.staticBlack.normal"
-          truncateAfterLines={1}
+    <AnimateInteractions motionTriggers={['hover']}>
+      <Box width="100%">
+        {/* Blade Link only accepts string children here; NextLink keeps the whole tab clickable. */}
+        <NextLink
+          href={href}
+          style={{ display: 'block', textDecoration: 'none' }}
         >
-          {label}
-        </Text>
+          <Box
+            width="100%"
+            height="36px"
+            display="flex"
+            alignItems="center"
+            minWidth="0px"
+            padding="spacing.3"
+            borderRadius="small"
+            backgroundColor="transparent"
+            position="relative"
+            overflow="hidden"
+          >
+            <Fade motionTriggers={['on-animate-interactions']} type="inout">
+              <Box
+                position="absolute"
+                top="spacing.0"
+                right="spacing.0"
+                bottom="spacing.0"
+                left="spacing.0"
+                backgroundColor="surface.background.primary.subtle"
+              />
+            </Fade>
+            <Box position="relative" zIndex={1} minWidth="0px">
+              <Text
+                as="span"
+                variant="body"
+                size="medium"
+                weight="regular"
+                color="surface.text.staticBlack.normal"
+                truncateAfterLines={1}
+              >
+                {label}
+              </Text>
+            </Box>
+          </Box>
+        </NextLink>
       </Box>
-    </NextLink>
+    </AnimateInteractions>
   );
 }
 
@@ -443,58 +478,64 @@ function ProjectSidebarCard({ project }: ProjectSidebarCardProps) {
   const projectTags = project.tags ?? [];
 
   return (
-    // Blade Link/Button only accept string children here; NextLink keeps the full card semantic.
-    <NextLink
-      href={`/projects/${project.slug}`}
-      style={{ display: 'block', textDecoration: 'none', width: '100%' }}
-    >
-      <Box
-        backgroundColor={isHovered ? 'surface.background.primary.subtle' : 'transparent'}
-        borderColor="surface.border.primary.muted"
-        borderWidth={isHovered ? 'none' : 'thin'}
-        borderStyle="solid"
-        borderRadius="small"
-        padding="spacing.3"
-        display="flex"
-        minWidth="0px"
-        width="100%"
-        flexDirection="column"
-        alignItems="flex-start"
-        gap="spacing.1"
-        overflow="hidden"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <Text
-          as="span"
-          size="medium"
-          weight="regular"
-          color="surface.text.staticBlack.normal"
-          truncateAfterLines={1}
-        >
-          {project.title}
-        </Text>
-        <Text size="small" color="surface.text.staticBlack.muted" truncateAfterLines={1}>
-          {project.role}
-        </Text>
-
-        {projectTags.length > 0 ? (
-          <Box
-            display="flex"
-            flexWrap="nowrap"
-            gap="spacing.2"
-            minWidth="0px"
-            width="100%"
-            height="24px"
-            overflow="hidden"
+    <AnimateInteractions motionTriggers={['hover']}>
+      <Scale motionTriggers={['on-animate-interactions']}>
+        <Box width="100%">
+          {/* Blade Link/Button only accept string children here; NextLink keeps the full card semantic. */}
+          <NextLink
+            href={`/projects/${project.slug}`}
+            style={{ display: 'block', textDecoration: 'none', width: '100%' }}
           >
-            {projectTags.map((tag) => (
-              <ProjectSidebarTag key={`${project.slug}-${tag}`} tag={tag} />
-            ))}
-          </Box>
-        ) : null}
-      </Box>
-    </NextLink>
+            <Box
+              backgroundColor={isHovered ? 'surface.background.primary.subtle' : 'transparent'}
+              borderColor="surface.border.primary.muted"
+              borderWidth={isHovered ? 'none' : 'thin'}
+              borderStyle="solid"
+              borderRadius="small"
+              padding="spacing.3"
+              display="flex"
+              minWidth="0px"
+              width="100%"
+              flexDirection="column"
+              alignItems="flex-start"
+              gap="spacing.1"
+              overflow="hidden"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              <Text
+                as="span"
+                size="medium"
+                weight="regular"
+                color="surface.text.staticBlack.normal"
+                truncateAfterLines={1}
+              >
+                {project.title}
+              </Text>
+              <Text size="small" color="surface.text.staticBlack.muted" truncateAfterLines={1}>
+                {project.role}
+              </Text>
+
+              {projectTags.length > 0 ? (
+                <Box
+                  display="flex"
+                  flexWrap="nowrap"
+                  gap="spacing.2"
+                  minWidth="0px"
+                  width="100%"
+                  height="24px"
+                  overflow="hidden"
+                >
+                  {projectTags.map((tag) => (
+                    <ProjectSidebarTag key={`${project.slug}-${tag}`} tag={tag} />
+                  ))}
+                </Box>
+              ) : null}
+            </Box>
+          </NextLink>
+        </Box>
+      </Scale>
+    </AnimateInteractions>
   );
 }
 

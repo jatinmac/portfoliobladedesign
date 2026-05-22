@@ -2,6 +2,7 @@
 
 import Image, { type StaticImageData } from 'next/image';
 import { useEffect, useState } from 'react';
+import { m, useReducedMotion } from 'framer-motion';
 
 import doubleAiImage from '../../assets/projects/double-ai-01.png';
 import doubleAiSecondImage from '../../assets/projects/double-ai-02.png';
@@ -15,6 +16,7 @@ import {
   Carousel,
   CarouselItem,
   Divider,
+  Fade,
   RazorSense,
   Text,
   Tooltip,
@@ -46,6 +48,7 @@ export function HomepageChatExperience({
   const { activeChatId, handleFirstUserMessage } = usePortfolioShell();
   const [isHomepageChatEmpty, setIsHomepageChatEmpty] = useState(true);
   const [isBottomWaveReady, setIsBottomWaveReady] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const carouselItems = projects.flatMap((project) =>
     (project.galleryImages?.length ? project.galleryImages : [project.heroImage])
       .map((imageFileName) => (imageFileName ? projectImagesByFileName[imageFileName] : undefined))
@@ -98,31 +101,38 @@ export function HomepageChatExperience({
         zIndex={1}
         flex="1"
       >
-        <Box
-          maxWidth="620px"
-          marginX="auto"
-          height={
-            isHomepageChatEmpty
-              ? { base: 'calc(100svh - 142px)', m: 'calc(100svh - 82px)' }
-              : { base: 'calc(100svh - 92px)', m: 'calc(100svh - 44px)' }
-          }
-          minHeight="0px"
-          minWidth="0px"
-          display="flex"
-          flexDirection="column"
-          gap="spacing.8"
+        <m.div
+          data-motion
+          layout={!shouldReduceMotion}
+          transition={{ duration: shouldReduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+          style={{ width: '100%', minWidth: 0, minHeight: 0 }}
         >
-          <ChatPanel
-            scope="portfolio"
-            storageKey={`portfolio-chat-${activeChatId}`}
-            placeholderSuggestions={placeholderSuggestions}
-            emptyStateSpacing="homepage"
-            emptyStateHeading={emptyStateHeading}
-            emptyStateFooter={<HomepageProjectCarousel items={carouselItems} />}
-            onFirstUserMessage={handleFirstUserMessage}
-            onEmptyStateChange={setIsHomepageChatEmpty}
-          />
-        </Box>
+          <Box
+            maxWidth="620px"
+            marginX="auto"
+            height={
+              isHomepageChatEmpty
+                ? { base: 'calc(100svh - 142px)', m: 'calc(100svh - 82px)' }
+                : { base: 'calc(100svh - 92px)', m: 'calc(100svh - 44px)' }
+            }
+            minHeight="0px"
+            minWidth="0px"
+            display="flex"
+            flexDirection="column"
+            gap="spacing.8"
+          >
+            <ChatPanel
+              scope="portfolio"
+              storageKey={`portfolio-chat-${activeChatId}`}
+              placeholderSuggestions={placeholderSuggestions}
+              emptyStateSpacing="homepage"
+              emptyStateHeading={emptyStateHeading}
+              emptyStateFooter={<HomepageProjectCarousel items={carouselItems} />}
+              onFirstUserMessage={handleFirstUserMessage}
+              onEmptyStateChange={setIsHomepageChatEmpty}
+            />
+          </Box>
+        </m.div>
       </Box>
       {isHomepageChatEmpty ? <HomepageFooter /> : null}
     </Box>
@@ -159,25 +169,27 @@ function HomepageBottomWave({ isVisible }: { isVisible: boolean }) {
 
 function HomepageFooter() {
   return (
-    <Box as="footer" width="100%" flexShrink={0} position="relative" zIndex={1}>
-      <Divider variant="muted" />
-      <Box
-        minHeight="50px"
-        paddingX={{ base: 'spacing.5', m: 'spacing.5' }}
-        paddingY="spacing.3"
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-        gap="spacing.1"
-      >
-        <Text size="medium" weight="semibold" color="surface.text.gray.normal">
-          Built with ❤️
-        </Text>
-        <Text variant="caption" size="medium" color="surface.text.gray.muted">
-          Using blade design system
-        </Text>
+    <Fade motionTriggers={['mount']} type="in" delay="moderate">
+      <Box as="footer" width="100%" flexShrink={0} position="relative" zIndex={1}>
+        <Divider variant="muted" />
+        <Box
+          minHeight="50px"
+          paddingX={{ base: 'spacing.5', m: 'spacing.5' }}
+          paddingY="spacing.3"
+          display="flex"
+          flexDirection="column"
+          justifyContent="center"
+          gap="spacing.1"
+        >
+          <Text size="medium" weight="semibold" color="surface.text.gray.normal">
+            Built with ❤️
+          </Text>
+          <Text variant="caption" size="medium" color="surface.text.gray.muted">
+            Using blade design system
+          </Text>
+        </Box>
       </Box>
-    </Box>
+    </Fade>
   );
 }
 
@@ -195,58 +207,60 @@ function HomepageProjectCarousel({ items }: HomepageProjectCarouselProps) {
   }
 
   return (
-    <Box
-      as="section"
-      display="flex"
-      flexDirection="column"
-      alignSelf="stretch"
-      gap="spacing.1"
-      minWidth="0px"
-      width="100%"
-    >
-      <Text variant="caption" size="medium" color="surface.text.gray.muted">
-        Browse my projects
-      </Text>
-      <Carousel
-        accessibilityLabel="Project image carousel"
-        carouselItemWidth={{
-          base: '100%',
-          s: 'calc((100% - 16px) / 2)',
-          m: 'calc((100% - 32px) / 3)',
-        }}
-        visibleItems="autofit"
-        navigationButtonPosition="bottom"
-        navigationButtonVariant="filled"
-        showIndicators
-        gap="spacing.5"
+    <Fade motionTriggers={['mount']} type="in" delay="moderate">
+      <Box
+        as="section"
+        display="flex"
+        flexDirection="column"
+        alignSelf="stretch"
+        gap="spacing.1"
+        minWidth="0px"
+        width="100%"
       >
-        {items.map(({ image, imageIndex, project }) => (
-          <CarouselItem key={`${project.slug}-${image.src}`}>
-            <Tooltip content={project.title} placement="top">
-              {/* Blade Link/Button only accept string children here, so the anchor preserves image-link semantics. */}
-              <a href={`/projects/${project.slug}`} aria-label={`Open ${project.title} project`}>
-                <Box
-                  backgroundColor="surface.background.primary.subtle"
-                  borderRadius="medium"
-                  height={{ base: '136px', m: '140px' }}
-                  overflow="hidden"
-                  position="relative"
-                  width="100%"
-                >
-                  <Image
-                    src={image}
-                    alt={`${project.title} project image ${imageIndex + 1}`}
-                    fill
-                    placeholder="blur"
-                    sizes="(min-width: 768px) 190px, 82vw"
-                    style={{ objectFit: 'cover' }}
-                  />
-                </Box>
-              </a>
-            </Tooltip>
-          </CarouselItem>
-        ))}
-      </Carousel>
-    </Box>
+        <Text variant="caption" size="medium" color="surface.text.gray.muted">
+          Browse my projects
+        </Text>
+        <Carousel
+          accessibilityLabel="Project image carousel"
+          carouselItemWidth={{
+            base: '100%',
+            s: 'calc((100% - 16px) / 2)',
+            m: 'calc((100% - 32px) / 3)',
+          }}
+          visibleItems="autofit"
+          navigationButtonPosition="bottom"
+          navigationButtonVariant="filled"
+          showIndicators
+          gap="spacing.5"
+        >
+          {items.map(({ image, imageIndex, project }) => (
+            <CarouselItem key={`${project.slug}-${image.src}`}>
+              <Tooltip content={project.title} placement="top">
+                {/* Blade Link/Button only accept string children here, so the anchor preserves image-link semantics. */}
+                <a href={`/projects/${project.slug}`} aria-label={`Open ${project.title} project`}>
+                  <Box
+                    backgroundColor="surface.background.primary.subtle"
+                    borderRadius="medium"
+                    height={{ base: '136px', m: '140px' }}
+                    overflow="hidden"
+                    position="relative"
+                    width="100%"
+                  >
+                    <Image
+                      src={image}
+                      alt={`${project.title} project image ${imageIndex + 1}`}
+                      fill
+                      placeholder="blur"
+                      sizes="(min-width: 768px) 190px, 82vw"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </Box>
+                </a>
+              </Tooltip>
+            </CarouselItem>
+          ))}
+        </Carousel>
+      </Box>
+    </Fade>
   );
 }
