@@ -11,9 +11,14 @@ type ScrollRevealProps = {
 };
 
 const revealTransition = {
-  duration: 0.32,
+  duration: 0.2,
   ease: [0.22, 1, 0.36, 1],
 };
+
+const revealHiddenState = (offset: number) => ({
+  opacity: 0.94,
+  y: Math.min(offset, 4),
+});
 
 export function ScrollReveal({
   children,
@@ -58,8 +63,8 @@ export function ScrollReveal({
     <m.div
       ref={elementRef}
       data-motion
-      initial={shouldReduceMotion ? false : { opacity: 0, y: offset }}
-      animate={hasEntered ? { opacity: 1, y: 0 } : { opacity: 0, y: offset }}
+      initial={shouldReduceMotion ? false : revealHiddenState(offset)}
+      animate={hasEntered ? { opacity: 1, y: 0 } : revealHiddenState(offset)}
       transition={{ ...revealTransition, delay }}
       style={{ width: '100%' }}
     >

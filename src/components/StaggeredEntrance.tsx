@@ -56,12 +56,12 @@ export function StaggeredEntrance({ children }: StaggeredEntranceProps) {
             key={`${childElement.key ?? 'item'}-${index}`}
             data-motion
             variants={{
-              hidden: { opacity: 0, y: 16 },
+              hidden: { opacity: 0.96, y: 3 },
               visible: {
                 opacity: 1,
                 y: 0,
                 transition: {
-                  duration: 0.28,
+                  duration: 0.18,
                   ease: [0.22, 1, 0.36, 1],
                 },
               },

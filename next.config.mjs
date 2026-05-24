@@ -1,3 +1,5 @@
+import withBundleAnalyzer from '@next/bundle-analyzer';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
@@ -22,6 +24,15 @@ const nextConfig = {
       },
     ];
   },
+  webpack(config) {
+    config.module.rules.push({
+      test: /node_modules\/@razorpay\/blade/,
+      sideEffects: false,
+    });
+    return config;
+  },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})(nextConfig);

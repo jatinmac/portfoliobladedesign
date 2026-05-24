@@ -1,7 +1,6 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { AnimatePresence, m, useReducedMotion } from 'framer-motion';
 import {
   createContext,
   useCallback,
@@ -17,14 +16,19 @@ import {
   Box,
   IconButton,
   SidebarIcon,
+  Text,
 } from './blade/PortfolioPrimitives';
+import { HomepageChatExperience } from './HomepageChatExperience';
 import { PageTransition } from './PageTransition';
 import { PortfolioSidebar, type RecentSidebarChat } from './PortfolioSidebar';
+import { ScrollProgressBar } from './ScrollProgressBar';
 
 type PortfolioAppShellProps = {
   children: ReactNode;
   projects: ProjectSummary[];
   pages: NavigationItem[];
+  placeholderSuggestions: string[];
+  emptyStateHeading: string;
 };
 
 type PortfolioShellContextValue = {
@@ -42,13 +46,20 @@ const MOBILE_TOP_BAR_BUTTON_BACKGROUND = 'surface.background.gray.subtle';
 const MOBILE_TOP_BAR_ICON_COLOR = 'interactive.icon.gray.subtle';
 const PortfolioShellContext = createContext<PortfolioShellContextValue | null>(null);
 
-export function PortfolioAppShell({ children, projects, pages }: PortfolioAppShellProps) {
+export function PortfolioAppShell({
+  children,
+  projects,
+  pages,
+  placeholderSuggestions,
+  emptyStateHeading,
+}: PortfolioAppShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [activeChatId, setActiveChatId] = useState('current');
   const [recentChats, setRecentChats] = useState<RecentSidebarChat[]>([]);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
+  const pageTitle = getPageTitle(pathname);
+  const shouldUseSplitWorkspace = isSplitWorkspaceRoute(pathname, pages);
 
   useEffect(() => {
     const storedRecentChats = parseRecentChats(
@@ -121,56 +132,35 @@ export function PortfolioAppShell({ children, projects, pages }: PortfolioAppShe
         minWidth="0px"
       >
         {isMobileSidebarOpen ? null : (
-          <MobileSidebarTopBar onToggle={() => setIsMobileSidebarOpen(true)} />
+          <MobileSidebarTopBar
+            pageTitle={pageTitle}
+            pathname={pathname}
+            onToggle={() => setIsMobileSidebarOpen(true)}
+          />
         )}
-        <AnimatePresence initial={false}>
-          {isMobileSidebarOpen ? (
-            <m.div
-              key="mobile-sidebar-overlay"
-              data-motion
-              initial={shouldReduceMotion ? false : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.18, ease: [0.4, 0, 0.2, 1] }}
-              style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 6,
-                display: 'flex',
-              }}
-            >
-              <m.div
-                data-motion
-                initial={shouldReduceMotion ? false : { x: '-100%' }}
-                animate={{ x: 0 }}
-                exit={shouldReduceMotion ? { x: 0 } : { x: '-100%' }}
-                transition={{ duration: shouldReduceMotion ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
-                style={{ height: '100%' }}
-              >
-                <PortfolioSidebar
-                  projects={projects}
-                  pages={pages}
-                  recentChats={recentChats}
-                  activeChatId={activeChatId}
-                  onNewChat={handleNewChat}
-                  onSelectChat={handleSelectChat}
-                  variant="mobile"
-                  onRequestClose={() => setIsMobileSidebarOpen(false)}
-                />
-              </m.div>
-              <m.div
-                data-motion
-                initial={shouldReduceMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-                transition={{ duration: shouldReduceMotion ? 0 : 0.2, ease: [0.4, 0, 0.2, 1] }}
-                style={{ flex: 1, minWidth: 0 }}
-              >
-                <Box height="100%" minWidth="0px" backgroundColor="overlay.background.subtle" />
-              </m.div>
-            </m.div>
-          ) : null}
-        </AnimatePresence>
+        <Box
+          position="fixed"
+          top="spacing.0"
+          right="spacing.0"
+          bottom="spacing.0"
+          left="spacing.0"
+          zIndex={6}
+          display={{ base: isMobileSidebarOpen ? 'flex' : 'none', m: 'none' }}
+        >
+          <Box height="100%">
+            <PortfolioSidebar
+              projects={projects}
+              pages={pages}
+              recentChats={recentChats}
+              activeChatId={activeChatId}
+              onNewChat={handleNewChat}
+              onSelectChat={handleSelectChat}
+              variant="mobile"
+              onRequestClose={() => setIsMobileSidebarOpen(false)}
+            />
+          </Box>
+          <Box flex="1" minWidth="0px" height="100%" backgroundColor="overlay.background.subtle" />
+        </Box>
         <Box
           position={{ base: 'relative', m: 'sticky' }}
           top={{ base: 'initial', m: 'spacing.0' }}
@@ -187,8 +177,44 @@ export function PortfolioAppShell({ children, projects, pages }: PortfolioAppShe
             onSelectChat={handleSelectChat}
           />
         </Box>
-        <Box flex="1" minWidth="0px">
-          <PageTransition>{children}</PageTransition>
+        <Box flex="1" minWidth="0px" width="100%">
+          {pathname === '/' ? null : <ScrollProgressBar />}
+          {shouldUseSplitWorkspace ? (
+            <Box
+              display="grid"
+              gridTemplateColumns={{
+                base: 'minmax(0, 1fr)',
+                l: 'minmax(0, 1fr) minmax(380px, 500px)',
+                xl: 'minmax(0, 1fr) minmax(420px, 520px)',
+              }}
+              minHeight={{ base: 'calc(100svh - 68px)', m: '100svh' }}
+              minWidth="0px"
+              width="100%"
+              backgroundColor="surface.background.gray.subtle"
+            >
+              <Box minWidth="0px">
+                <PageTransition>{children}</PageTransition>
+              </Box>
+              <Box
+                borderLeftColor="surface.border.gray.subtle"
+                borderLeftStyle="solid"
+                borderLeftWidth={{ base: 'none', l: 'thin' }}
+                height={{ base: 'calc(100svh - 68px)', m: '100svh' }}
+                minHeight={{ base: '560px', l: '0px' }}
+                minWidth="0px"
+                position={{ base: 'relative', l: 'sticky' }}
+                top={{ base: 'initial', l: 'spacing.0' }}
+              >
+                <HomepageChatExperience
+                  placeholderSuggestions={placeholderSuggestions}
+                  projects={projects}
+                  emptyStateHeading={emptyStateHeading}
+                />
+              </Box>
+            </Box>
+          ) : (
+            <PageTransition>{children}</PageTransition>
+          )}
         </Box>
       </Box>
     </PortfolioShellContext.Provider>
@@ -196,10 +222,12 @@ export function PortfolioAppShell({ children, projects, pages }: PortfolioAppShe
 }
 
 type MobileSidebarTopBarProps = {
+  pageTitle: string;
+  pathname: string;
   onToggle: () => void;
 };
 
-function MobileSidebarTopBar({ onToggle }: MobileSidebarTopBarProps) {
+function MobileSidebarTopBar({ pageTitle, pathname, onToggle }: MobileSidebarTopBarProps) {
   return (
     <Box
       as="header"
@@ -211,6 +239,7 @@ function MobileSidebarTopBar({ onToggle }: MobileSidebarTopBarProps) {
       backgroundColor={MOBILE_TOP_BAR_BACKGROUND}
       flexShrink={0}
       zIndex={5}
+      gap="spacing.3"
     >
       <Box
         width="36px"
@@ -229,6 +258,17 @@ function MobileSidebarTopBar({ onToggle }: MobileSidebarTopBarProps) {
           emphasis="subtle"
           onClick={onToggle}
         />
+      </Box>
+      <Box minWidth="0px" flex="1">
+        <Text
+          as="span"
+          size="medium"
+          weight="semibold"
+          color="surface.text.gray.normal"
+          truncateAfterLines={1}
+        >
+          {pageTitle}
+        </Text>
       </Box>
     </Box>
   );
@@ -290,4 +330,40 @@ function formatRecentChatTitle(message: string): string {
 
 function createChatSessionId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function getPageTitle(pathname: string): string {
+  if (pathname === '/') {
+    return 'About';
+  }
+
+  if (pathname === '/about') {
+    return 'About';
+  }
+
+  if (pathname === '/projects' || pathname.startsWith('/projects/')) {
+    return 'Projects';
+  }
+
+  if (pathname === '/experience') {
+    return 'Experience';
+  }
+
+  if (pathname === '/contact') {
+    return 'Contact';
+  }
+
+  return 'Portfolio';
+}
+
+function isSplitWorkspaceRoute(pathname: string, pages: NavigationItem[]): boolean {
+  if (pathname === '/') {
+    return true;
+  }
+
+  if (pathname.startsWith('/projects/')) {
+    return false;
+  }
+
+  return pages.some((page) => page.href === pathname);
 }

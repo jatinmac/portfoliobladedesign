@@ -12,11 +12,9 @@ import {
   Badge,
   Box,
   Button,
+  Divider,
   ExternalLinkIcon,
   Heading,
-  List,
-  ListItem,
-  ListItemText,
   Text,
 } from '../blade/PortfolioPrimitives';
 import { ScrollReveal } from '../ScrollReveal';
@@ -39,13 +37,18 @@ export function ContentDrivenPageExperience({
   children,
 }: ContentDrivenPageExperienceProps) {
   return (
-    <Box minHeight="100svh" backgroundColor="surface.background.gray.intense">
+    <Box
+      minHeight="100svh"
+      backgroundColor="surface.background.gray.intense"
+      display="flex"
+      justifyContent="center"
+    >
       <Box
         as="main"
+        width="100%"
         paddingX={{ base: 'spacing.4', s: 'spacing.5', l: 'spacing.7' }}
         paddingY={{ base: 'spacing.6', m: 'spacing.8' }}
-        maxWidth="920px"
-        marginX="auto"
+        maxWidth="900px"
         minWidth="0px"
       >
         <Box display="flex" flexDirection="column" gap={{ base: 'spacing.6', m: 'spacing.7' }}>
@@ -73,15 +76,22 @@ function PageHeader({
   action?: ContentDrivenPageExperienceProps['action'];
 }) {
   return (
-    <Box display="flex" flexDirection="column" gap="spacing.4">
+    <Box
+      display="flex"
+      flexDirection="column"
+      gap="spacing.4"
+      alignItems="flex-start"
+      width="100%"
+    >
       <Box
         display="flex"
         flexDirection={{ base: 'column', m: 'row' }}
         alignItems={{ base: 'flex-start', m: 'flex-start' }}
         justifyContent="space-between"
         gap="spacing.4"
+        width="100%"
       >
-        <Box display="flex" flexDirection="column" gap="spacing.2" minWidth="0px">
+        <Box display="flex" flexDirection="column" gap="spacing.2" minWidth="0px" maxWidth="720px">
           <Text
             variant="caption"
             size="medium"
@@ -94,7 +104,7 @@ function PageHeader({
             {page.header.title}
           </Heading>
           {page.header.description ? (
-            <Text size="medium" color="surface.text.gray.muted">
+            <Text size="medium" color="surface.text.gray.muted" wordBreak="break-word">
               {page.header.description}
             </Text>
           ) : null}
@@ -128,10 +138,11 @@ function PageHeader({
 
 function ContentSectionPanel({ section }: { section: ContentPageSection }) {
   const shouldGridSubsections = section.subsections.length > 1 && section.blocks.length === 0;
+  const hasIntroBlocks = section.blocks.length > 0;
 
   return (
     <InfoPanel title={section.title}>
-      <SectionBlocks blocks={section.blocks} />
+      <SectionBlocks blocks={section.blocks} mode="feature" />
       {section.subsections.length > 0 ? (
         <Box
           display="grid"
@@ -139,7 +150,9 @@ function ContentSectionPanel({ section }: { section: ContentPageSection }) {
             base: '1fr',
             m: shouldGridSubsections ? 'repeat(2, minmax(0, 1fr))' : '1fr',
           }}
+          alignItems="start"
           gap="spacing.4"
+          marginTop={hasIntroBlocks ? 'spacing.2' : undefined}
         >
           {section.subsections.map((subsection, subsectionIndex) => (
             <Box
@@ -151,10 +164,16 @@ function ContentSectionPanel({ section }: { section: ContentPageSection }) {
               borderRadius="medium"
               backgroundColor="surface.background.gray.intense"
             >
-              <Heading as="h3" size="small" color="surface.text.gray.normal">
-                {subsection.title}
-              </Heading>
-              <SectionBlocks blocks={subsection.blocks} />
+              <Box display="flex" alignItems="flex-start" justifyContent="space-between" gap="spacing.3">
+                <Heading as="h3" size="small" color="surface.text.gray.normal">
+                  {subsection.title}
+                </Heading>
+                <Badge color="neutral" emphasis="subtle" size="small">
+                  {String(subsectionIndex + 1).padStart(2, '0')}
+                </Badge>
+              </Box>
+              <Divider />
+              <SectionBlocks blocks={subsection.blocks} mode="compact" />
             </Box>
           ))}
         </Box>
@@ -163,29 +182,93 @@ function ContentSectionPanel({ section }: { section: ContentPageSection }) {
   );
 }
 
-function SectionBlocks({ blocks }: { blocks: ContentPageSectionBlock[] }) {
+function SectionBlocks({
+  blocks,
+  mode,
+}: {
+  blocks: ContentPageSectionBlock[];
+  mode: 'feature' | 'compact';
+}) {
   if (blocks.length === 0) {
     return null;
   }
 
   return (
-    <Box display="flex" flexDirection="column" gap="spacing.4">
+    <Box display="flex" flexDirection="column" gap={mode === 'feature' ? 'spacing.4' : 'spacing.3'}>
       {blocks.map((block, index) => {
         if (block.type === 'paragraph') {
           return (
-            <Text key={`${block.text}-${index}`} size="medium" color="surface.text.gray.muted">
-              {block.text}
-            </Text>
+            <ParagraphFeature
+              key={`${block.text}-${index}`}
+              text={block.text}
+              index={index}
+              mode={mode}
+            />
           );
         }
 
-        return <ContentList key={`list-${index}`} block={block} />;
+        return <ContentList key={`list-${index}`} block={block} mode={mode} blockIndex={index} />;
       })}
     </Box>
   );
 }
 
-function ContentList({ block }: { block: Extract<ContentPageSectionBlock, { type: 'list' }> }) {
+function ParagraphFeature({
+  text,
+  index,
+  mode,
+}: {
+  text: string;
+  index: number;
+  mode: 'feature' | 'compact';
+}) {
+  if (mode === 'compact') {
+    return (
+      <Text size="small" color="surface.text.gray.muted">
+        {text}
+      </Text>
+    );
+  }
+
+  return (
+    <Box
+      display="grid"
+      gridTemplateColumns={{ base: '40px minmax(0, 1fr)', m: '48px minmax(0, 1fr)' }}
+      gap="spacing.3"
+      alignItems="flex-start"
+      padding="spacing.4"
+      borderRadius="medium"
+      backgroundColor="surface.background.gray.intense"
+    >
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        width="32px"
+        height="32px"
+        borderRadius="round"
+        backgroundColor="surface.background.primary.subtle"
+      >
+        <Text size="small" weight="semibold" color="interactive.text.primary.normal">
+          {String(index + 1).padStart(2, '0')}
+        </Text>
+      </Box>
+      <Text size="medium" color="surface.text.gray.muted">
+        {text}
+      </Text>
+    </Box>
+  );
+}
+
+function ContentList({
+  block,
+  mode,
+  blockIndex,
+}: {
+  block: Extract<ContentPageSectionBlock, { type: 'list' }>;
+  mode: 'feature' | 'compact';
+  blockIndex: number;
+}) {
   const hasLinkedItems = block.items.some((item) => item.href);
 
   if (hasLinkedItems) {
@@ -202,13 +285,31 @@ function ContentList({ block }: { block: Extract<ContentPageSectionBlock, { type
   }
 
   return (
-    <List variant={block.ordered ? 'ordered' : 'unordered'} size="small">
+    <Box
+      display="grid"
+      gridTemplateColumns="1fr"
+      alignItems="start"
+      gap="spacing.3"
+    >
       {block.items.map((item, itemIndex) => (
-        <ListItem key={`${item.text}-${itemIndex}`}>
-          <ListItemText>{item.text}</ListItemText>
-        </ListItem>
+        <Box
+          key={`${item.text}-${itemIndex}`}
+          display="flex"
+          gap="spacing.3"
+          alignItems="flex-start"
+          padding="spacing.3"
+          borderRadius="medium"
+          backgroundColor={mode === 'feature' ? 'surface.background.gray.intense' : 'surface.background.gray.subtle'}
+        >
+          <Badge color={block.ordered ? 'primary' : 'neutral'} emphasis="subtle" size="small">
+            {String(block.items.length === 1 ? blockIndex + 1 : itemIndex + 1).padStart(2, '0')}
+          </Badge>
+          <Text size="small" color="surface.text.gray.muted">
+            {item.text}
+          </Text>
+        </Box>
       ))}
-    </List>
+    </Box>
   );
 }
 
@@ -261,14 +362,17 @@ function InfoPanel({ title, children }: InfoPanelProps) {
       as="section"
       display="flex"
       flexDirection="column"
-      gap="spacing.3"
+      gap="spacing.4"
       padding={{ base: 'spacing.4', m: 'spacing.5' }}
       borderRadius="medium"
       backgroundColor="surface.background.primary.subtle"
     >
-      <Heading as="h2" size="medium" color="surface.text.gray.normal">
-        {title}
-      </Heading>
+      <Box display="flex" flexDirection="column" gap="spacing.3">
+        <Heading as="h2" size="medium" color="surface.text.gray.normal">
+          {title}
+        </Heading>
+        <Divider />
+      </Box>
       {children}
     </Box>
   );

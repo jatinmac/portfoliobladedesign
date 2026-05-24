@@ -44,6 +44,13 @@ export {
   Slide,
   Spinner,
   Stagger,
+  StepGroup,
+  StepItem,
+  StepItemIndicator,
+  TabItem,
+  TabList,
+  TabPanel,
+  Tabs,
   Text,
   Tooltip,
 } from '@razorpay/blade/components';

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { m, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, LayoutGroup, m, useReducedMotion } from 'framer-motion';
 
 import chatExperienceBackgroundImage from '../../assets/profile/background.png';
 import chatExperienceIntroImage from '../../assets/profile/chat_experience_intro.png';
@@ -22,7 +22,6 @@ import {
   Move,
   RayIcon,
   RefreshIcon,
-  Scale,
   Stagger,
   Text,
 } from './blade/PortfolioPrimitives';
@@ -80,6 +79,7 @@ export function ChatPanel({
   const hasLoadedRef = useRef(false);
   const isEmptyChat = messages.length === 0;
   const isHomepageEmptyState = emptyStateSpacing === 'homepage';
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     try {
@@ -390,134 +390,167 @@ export function ChatPanel({
       position="relative"
       overflow="visible"
     >
-      <Box
-        ref={messageListRef}
-        position="relative"
-        display="flex"
-        flexDirection="column"
-        gap="spacing.4"
-        justifyContent={isHomepageEmptyState && isEmptyChat ? 'center' : 'flex-start'}
-        overflow={isEmptyChat ? 'visible' : undefined}
-        overflowY={isEmptyChat ? 'visible' : 'auto'}
-        flex="1"
-        minHeight="0px"
-        minWidth="0px"
-        maxWidth="620px"
-        width="100%"
-        marginX="auto"
-        paddingTop={
-          isEmptyChat
-            ? isHomepageEmptyState
-              ? 'spacing.3'
-              : 'spacing.2'
-            : { base: 'spacing.4', m: 'spacing.6' }
-        }
-        paddingBottom={{ base: 'spacing.4', m: 'spacing.6' }}
-        zIndex={2}
-      >
-        {isEmptyChat ? (
-          <Fade isVisible type="inout" shouldUnmountWhenHidden>
-            <Scale motionTriggers={['mount']} type="in">
-              <Box
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                width="100%"
-                paddingX="spacing.5"
-                gap={isHomepageEmptyState ? 'spacing.0' : 'spacing.5'}
+      <LayoutGroup>
+        <Box
+          ref={messageListRef}
+          position="relative"
+          display="flex"
+          flexDirection="column"
+          gap="spacing.4"
+          justifyContent={isHomepageEmptyState && isEmptyChat ? 'center' : 'flex-start'}
+          overflow={isEmptyChat ? 'visible' : undefined}
+          overflowY={isEmptyChat ? 'visible' : 'auto'}
+          flex="1"
+          minHeight="0px"
+          minWidth="0px"
+          maxWidth="620px"
+          width="100%"
+          marginX="auto"
+          paddingTop={
+            isEmptyChat
+              ? isHomepageEmptyState
+                ? 'spacing.3'
+                : 'spacing.2'
+              : { base: 'spacing.4', m: 'spacing.6' }
+          }
+          paddingBottom={{ base: 'spacing.4', m: 'spacing.6' }}
+          zIndex={2}
+        >
+          <AnimatePresence initial={false}>
+            {isEmptyChat ? (
+              <m.div
+                key="chat-empty-state"
+                data-motion
+                initial={false}
+                exit={
+                  shouldReduceMotion
+                    ? { opacity: 1, scale: 1 }
+                    : { opacity: 0, scale: 0.95 }
+                }
+                transition={{ duration: shouldReduceMotion ? 0 : 0.16, ease: [0.4, 0, 0.2, 1] }}
+                style={{ width: '100%' }}
               >
-                <ChatIntroHero heading={emptyStateHeading} />
-                <Box
-                  marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'}
-                  width="100%"
-                  display="flex"
-                  flexDirection="column"
-                  gap="spacing.4"
-                >
-                  <ChatComposer
-                    draft={draft}
-                    error={error}
-                    isStreaming={isStreaming}
-                    placeholderSuggestions={placeholderSuggestions}
-                    onDraftChange={setDraft}
-                    onSubmit={sendMessage}
-                    onStop={handleStop}
-                    onErrorDismiss={() => setError(null)}
-                  />
-                </Box>
-                {emptyStateFooter ? (
-                  <Box marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'} width="100%">
-                    {emptyStateFooter}
+                <Fade isVisible type="inout" shouldUnmountWhenHidden>
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    width="100%"
+                    paddingX="spacing.5"
+                    gap={isHomepageEmptyState ? 'spacing.0' : 'spacing.5'}
+                  >
+                    <ChatIntroHero heading={emptyStateHeading} />
+                    <Box
+                      marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'}
+                      width="100%"
+                      display="flex"
+                      flexDirection="column"
+                      gap="spacing.4"
+                    >
+                      <m.div
+                        layoutId="portfolio-chat-composer"
+                        transition={{
+                          duration: shouldReduceMotion ? 0 : 0.22,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        style={{ width: '100%' }}
+                      >
+                        <ChatComposer
+                          draft={draft}
+                          error={error}
+                          isStreaming={isStreaming}
+                          placeholderSuggestions={placeholderSuggestions}
+                          onDraftChange={setDraft}
+                          onSubmit={sendMessage}
+                          onStop={handleStop}
+                          onErrorDismiss={() => setError(null)}
+                        />
+                      </m.div>
+                    </Box>
+                    {emptyStateFooter ? (
+                      <Box marginTop={isHomepageEmptyState ? 'spacing.5' : 'spacing.0'} width="100%">
+                        {emptyStateFooter}
+                      </Box>
+                    ) : null}
                   </Box>
-                ) : null}
-              </Box>
-            </Scale>
-          </Fade>
-        ) : null}
+                </Fade>
+              </m.div>
+            ) : null}
+          </AnimatePresence>
 
-        {messages.map((message) => (
-          <AnimatedChatMessage key={message.id} role={message.role}>
-            <Box position="relative" zIndex={2}>
-              <ChatMessage
-                senderType={message.role === 'user' ? 'self' : 'other'}
-                leading={
-                  message.role === 'assistant' ? (
-                    <RayIcon size="large" color="interactive.icon.primary.normal" />
-                  ) : undefined
-                }
-                isLoading={message.role === 'assistant' && !message.content}
-                loadingText="Thinking..."
-                maxWidth="100%"
-                wordBreak="break-word"
-                footerActions={
-                  message.role === 'assistant' && message.content && message.metadata ? (
-                    <AssistantResponseMetadata
-                      metadata={message.metadata}
-                      isDisabled={isStreaming}
-                      onFollowUp={(followUp) => void sendMessage(followUp)}
+          {messages.map((message) => (
+            <AnimatedChatMessage key={message.id} role={message.role}>
+              <Box position="relative" zIndex={2}>
+                <ChatMessage
+                  senderType={message.role === 'user' ? 'self' : 'other'}
+                  leading={
+                    message.role === 'assistant' ? (
+                      <RayIcon size="large" color="interactive.icon.primary.normal" />
+                    ) : undefined
+                  }
+                  isLoading={message.role === 'assistant' && !message.content}
+                  loadingText="Thinking..."
+                  maxWidth="100%"
+                  wordBreak="break-word"
+                  footerActions={
+                    message.role === 'assistant' && message.content && message.metadata ? (
+                      <AssistantResponseMetadata
+                        metadata={message.metadata}
+                        isDisabled={isStreaming}
+                        onFollowUp={(followUp) => void sendMessage(followUp)}
+                      />
+                    ) : undefined
+                  }
+                >
+                  {message.content ? (
+                    <ChatMessageContent
+                      content={message.content}
+                      role={message.role}
+                      isStreaming={
+                        isStreaming &&
+                        message.role === 'assistant' &&
+                        message.id === messages[messages.length - 1]?.id
+                      }
                     />
-                  ) : undefined
-                }
-              >
-                {message.content ? (
-                  <ChatMessageContent
-                    content={message.content}
-                    role={message.role}
-                    isStreaming={
-                      isStreaming &&
-                      message.role === 'assistant' &&
-                      message.id === messages[messages.length - 1]?.id
-                    }
-                  />
-                ) : (
-                  ''
-                )}
-              </ChatMessage>
-            </Box>
-          </AnimatedChatMessage>
-        ))}
-      </Box>
+                  ) : (
+                    ''
+                  )}
+                </ChatMessage>
+              </Box>
+            </AnimatedChatMessage>
+          ))}
+        </Box>
 
-      {isEmptyChat ? null : (
-        <Move isVisible={!isEmptyChat} type="inout" shouldUnmountWhenHidden>
-          <ChatComposerShell
-            error={error}
-            isRetryDisabled={!latestUserMessage || isStreaming}
-            onRetry={handleRetry}
+        {isEmptyChat ? null : (
+          <m.div
+            layoutId="portfolio-chat-composer"
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.22,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            style={{ width: '100%' }}
           >
-            <ChatComposer
-              draft={draft}
-              error={error}
-              isStreaming={isStreaming}
-              placeholderSuggestions={placeholderSuggestions}
-              onDraftChange={setDraft}
-              onSubmit={sendMessage}
-              onStop={handleStop}
-              onErrorDismiss={() => setError(null)}
-            />
-          </ChatComposerShell>
-        </Move>
-      )}
+            <Move isVisible={!isEmptyChat} type="inout" shouldUnmountWhenHidden>
+              <ChatComposerShell
+                error={error}
+                isRetryDisabled={!latestUserMessage || isStreaming}
+                onRetry={handleRetry}
+              >
+                <ChatComposer
+                  draft={draft}
+                  error={error}
+                  isStreaming={isStreaming}
+                  placeholderSuggestions={placeholderSuggestions}
+                  onDraftChange={setDraft}
+                  onSubmit={sendMessage}
+                  onStop={handleStop}
+                  onErrorDismiss={() => setError(null)}
+                />
+              </ChatComposerShell>
+            </Move>
+          </m.div>
+        )}
+      </LayoutGroup>
     </Box>
   );
 }
@@ -577,18 +610,27 @@ function ChatComposer({
     }
 
     setVisiblePlaceholderWordCount(0);
-    const intervalId = window.setInterval(() => {
-      setVisiblePlaceholderWordCount((currentCount) => {
-        if (currentCount >= activePlaceholderWords.length) {
-          window.clearInterval(intervalId);
-          return currentCount;
-        }
+    let timeoutId: number | undefined;
+    let nextVisibleWordCount = 0;
 
-        return currentCount + 1;
-      });
-    }, 120);
+    const revealNextWord = () => {
+      nextVisibleWordCount += 1;
+      setVisiblePlaceholderWordCount(nextVisibleWordCount);
 
-    return () => window.clearInterval(intervalId);
+      if (nextVisibleWordCount < activePlaceholderWords.length) {
+        timeoutId = window.setTimeout(revealNextWord, 120);
+      }
+    };
+
+    if (activePlaceholderWords.length > 0) {
+      timeoutId = window.setTimeout(revealNextWord, 120);
+    }
+
+    return () => {
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId);
+      }
+    };
   }, [activePlaceholder, activePlaceholderWords.length, shouldShowAnimatedPlaceholder]);
 
   useEffect(() => {

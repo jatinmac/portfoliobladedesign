@@ -1,13 +1,8 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 
-import aboutImage from '../../../assets/profile/about.png';
-import { ContentDrivenPageExperience } from '../../components/page-layouts/ContentDrivenPageExperience';
-import { Box } from '../../components/blade/PortfolioPrimitives';
+import { AboutPageExperience } from '../../components/about/AboutPageExperience';
 import {
-  getAboutPageContent,
-  getContentDrivenPage,
   getContentPageHeader,
   getOptionalContentPage,
 } from '../../lib/content/content-loader';
@@ -25,43 +20,5 @@ export default function AboutPage() {
     notFound();
   }
 
-  const aboutPage = getAboutPageContent();
-  const contentPage = getContentDrivenPage('about');
-  const page = {
-    ...contentPage,
-    header: {
-      ...contentPage.header,
-      title: aboutPage.name,
-      description: aboutPage.description,
-    },
-    tags: aboutPage.tags,
-  };
-
-  return (
-    <ContentDrivenPageExperience
-      page={page}
-      action={
-        aboutPage.linkedInHref ? { label: 'LinkedIn', href: aboutPage.linkedInHref } : undefined
-      }
-      hero={
-        <Box
-          position="relative"
-          width="100%"
-          height={{ base: '260px', xs: '320px', s: '420px', m: '654px' }}
-          borderRadius="medium"
-          overflow="hidden"
-          backgroundColor="surface.background.primary.subtle"
-        >
-          <Image
-            src={aboutImage}
-            alt="Jatin Davis portrait over a blue wave background"
-            fill
-            priority
-            sizes="(min-width: 1024px) 920px, 100vw"
-            style={{ objectFit: 'cover' }}
-          />
-        </Box>
-      }
-    />
-  );
+  return <AboutPageExperience />;
 }

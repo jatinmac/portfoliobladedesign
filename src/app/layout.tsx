@@ -5,7 +5,8 @@ import './globals.css';
 import { PortfolioAppShell } from '../components/PortfolioAppShell';
 import { BladeProviders } from '../components/blade/BladeProviders';
 import { getProjectSummaries } from '../lib/content/projects';
-import { getNavigationItems, getSiteMetadata } from '../lib/content/site';
+import { getHomeHeadline } from '../lib/content/content-loader';
+import { getNavigationItems, getPlaceholderSuggestions, getSiteMetadata } from '../lib/content/site';
 import { StyledComponentsRegistry } from '../components/blade/StyledComponentsRegistry';
 
 const siteMetadata = getSiteMetadata();
@@ -33,7 +34,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <StyledComponentsRegistry>
           <BladeProviders>
-            <PortfolioAppShell projects={projects} pages={pages}>{children}</PortfolioAppShell>
+            <PortfolioAppShell
+              projects={projects}
+              pages={pages}
+              placeholderSuggestions={getPlaceholderSuggestions()}
+              emptyStateHeading={getHomeHeadline()}
+            >
+              {children}
+            </PortfolioAppShell>
           </BladeProviders>
         </StyledComponentsRegistry>
       </body>
