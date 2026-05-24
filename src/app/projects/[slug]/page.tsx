@@ -6,10 +6,10 @@ import {
   Badge,
   Box,
   Button,
+  Divider,
   ExternalLinkIcon,
   Heading,
-  Move,
-  Stagger,
+  Link,
   Text,
 } from '../../../components/blade/PortfolioPrimitives';
 import { MarkdownTableBlock, renderInlineMarkdown } from '../../../components/MarkdownRenderer';
@@ -73,17 +73,25 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   const detailSections = projectSections.filter((section) => section.title !== 'Design Process');
 
   return (
-    <Box minHeight="100svh" backgroundColor="surface.background.gray.intense">
+    <Box
+      minHeight="100svh"
+      backgroundColor="surface.background.gray.intense"
+      display="flex"
+      justifyContent="center"
+    >
       <Box
         as="main"
+        width="100%"
         display="flex"
         flexDirection="column"
         gap={{ base: 'spacing.5', l: 'spacing.6' }}
-        padding={{ base: 'spacing.4', s: 'spacing.5', l: '56px' }}
-        maxWidth="1040px"
-        marginX="auto"
+        paddingX={{ base: 'spacing.4', s: 'spacing.5', l: 'spacing.7' }}
+        paddingY={{ base: 'spacing.6', m: 'spacing.8' }}
+        maxWidth="900px"
         minWidth="0px"
       >
+        <ProjectBreadcrumb projectTitle={project.title} />
+
         <StaggeredEntrance>
           <Box display="flex" flexDirection="column" gap="spacing.4" minWidth="0px">
             <Box
@@ -189,6 +197,24 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   );
 }
 
+function ProjectBreadcrumb({ projectTitle }: { projectTitle: string }) {
+  return (
+    <Box display="flex" alignItems="center" gap="spacing.2" minWidth="0px">
+      <Link href="/projects" size="small" color="primary">
+        Projects
+      </Link>
+      <Text as="span" size="small" color="surface.text.gray.muted">
+        /
+      </Text>
+      <Box minWidth="0px">
+        <Text as="span" size="small" color="surface.text.gray.muted" truncateAfterLines={1}>
+          {projectTitle}
+        </Text>
+      </Box>
+    </Box>
+  );
+}
+
 type ProjectPitchDeckCarouselProps = {
   projectSlug: string;
   projectTitle: string;
@@ -276,23 +302,16 @@ function ProjectInfoGrid({
   timeline: string;
 }) {
   return (
-    <Stagger
+    <Box
       display="grid"
       gridTemplateColumns={{ base: '1fr', m: 'repeat(3, 1fr)' }}
+      alignItems="start"
       gap={{ base: 'spacing.4', m: 'spacing.5' }}
-      motionTriggers={['mount']}
-      type="in"
     >
-      <Move motionTriggers={['mount']} type="in">
-        {renderProjectInfoCard({ title: 'Product', value: product })}
-      </Move>
-      <Move motionTriggers={['mount']} type="in">
-        {renderProjectInfoCard({ title: 'My Role & Responsibility', value: role })}
-      </Move>
-      <Move motionTriggers={['mount']} type="in">
-        {renderProjectInfoCard({ title: 'Timeline', value: timeline })}
-      </Move>
-    </Stagger>
+      {renderProjectInfoCard({ title: 'Product', value: product })}
+      {renderProjectInfoCard({ title: 'My Role & Responsibility', value: role })}
+      {renderProjectInfoCard({ title: 'Timeline', value: timeline })}
+    </Box>
   );
 }
 
@@ -335,11 +354,14 @@ function ProjectSectionCard({ section }: { section: ProjectSection }) {
       borderRadius="medium"
       minWidth="0px"
     >
-      <Heading as="h2" size="medium">
-        {section.title}
-      </Heading>
-
       <Box display="flex" flexDirection="column" gap="spacing.3">
+        <Heading as="h2" size="medium">
+          {section.title}
+        </Heading>
+        <Divider />
+      </Box>
+
+      <Box display="flex" flexDirection="column" gap="spacing.4">
         {section.blocks.map((block, index) => (
           <ProjectMarkdownBlock key={`${section.title}-${index}`} block={block} blockIndex={index} />
         ))}
@@ -351,20 +373,40 @@ function ProjectSectionCard({ section }: { section: ProjectSection }) {
 function ProjectMarkdownBlock({ block, blockIndex }: { block: MarkdownBlock; blockIndex: number }) {
   if (block.type === 'heading') {
     return (
-      <Heading as="h3" size="small">
-        {block.text}
-      </Heading>
+      <Box
+        display="flex"
+        alignItems="center"
+        gap="spacing.3"
+        paddingTop={blockIndex === 0 ? 'spacing.0' : 'spacing.2'}
+      >
+        <Heading as="h3" size="small">
+          {block.text}
+        </Heading>
+      </Box>
     );
   }
 
   if (block.type === 'list') {
     return (
-      <Box display="flex" flexDirection="column" gap="spacing.2">
+      <Box
+        display="grid"
+        gridTemplateColumns={{ base: '1fr', m: 'repeat(2, minmax(0, 1fr))' }}
+        alignItems="start"
+        gap="spacing.3"
+      >
         {block.items.map((item, itemIndex) => (
-          <Box key={`${item}-${itemIndex}`} display="flex" gap="spacing.2" alignItems="flex-start">
-            <Text size="small" color="surface.text.gray.muted">
-              {block.ordered ? `${itemIndex + 1}.` : '\u2022'}
-            </Text>
+          <Box
+            key={`${item}-${itemIndex}`}
+            display="flex"
+            flexDirection="column"
+            gap="spacing.2"
+            padding="spacing.4"
+            borderRadius="medium"
+            backgroundColor="surface.background.gray.intense"
+          >
+            <Badge color={block.ordered ? 'primary' : 'neutral'} emphasis="subtle" size="small">
+              {String(itemIndex + 1).padStart(2, '0')}
+            </Badge>
             <Text size="small" color="surface.text.gray.muted" wordBreak="break-word">
               {renderInlineMarkdown(item, 'small', `project-list-${blockIndex}-${itemIndex}`)}
             </Text>
@@ -379,9 +421,32 @@ function ProjectMarkdownBlock({ block, blockIndex }: { block: MarkdownBlock; blo
   }
 
   return (
-    <Text color="surface.text.gray.muted" wordBreak="break-word">
-      {renderInlineMarkdown(block.text, 'medium', `project-paragraph-${blockIndex}`)}
-    </Text>
+    <Box
+      display="grid"
+      gridTemplateColumns={{ base: '40px minmax(0, 1fr)', m: '48px minmax(0, 1fr)' }}
+      gap="spacing.3"
+      alignItems="flex-start"
+      padding="spacing.4"
+      borderRadius="medium"
+      backgroundColor="surface.background.gray.intense"
+    >
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        width="32px"
+        height="32px"
+        borderRadius="round"
+        backgroundColor="surface.background.primary.subtle"
+      >
+        <Text size="small" weight="semibold" color="interactive.text.primary.normal">
+          {String(blockIndex + 1).padStart(2, '0')}
+        </Text>
+      </Box>
+      <Text color="surface.text.gray.muted" wordBreak="break-word">
+        {renderInlineMarkdown(block.text, 'medium', `project-paragraph-${blockIndex}`)}
+      </Text>
+    </Box>
   );
 }
 

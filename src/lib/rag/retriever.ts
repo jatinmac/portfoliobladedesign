@@ -40,6 +40,22 @@ const QUERY_ALIASES: Record<string, string[]> = {
 };
 
 let chunkCache: RetrievalChunk[] | null = null;
+const searchableChunkCache = new WeakMap<RetrievalChunk, SearchableChunk>();
+
+type SearchableChunk = {
+  haystack: string;
+  haystackStems: Set<string>;
+  title: string;
+  projectTitle: string;
+  chatContext: string;
+  keywordMetadata: string;
+};
+
+type QueryIndex = {
+  phrase: string;
+  tokens: string[];
+  bigrams: string[];
+};
 
 export type RetrieveOptions = {
   query: string;
@@ -59,7 +75,7 @@ export function retrieveLexicalPortfolioContext(
   options: RetrieveOptions,
 ): RetrievalResult {
   const resolvedScope = resolveRetrievalScope(options);
-  const queryTokens = expandQueryTokens(tokenize(options.query));
+  const queryIndex = buildQueryIndex(options.query);
   const limits = resolveChunkLimits(options);
   const sourceTypes = options.sourceTypes ?? ['project', 'site'];
 
@@ -69,7 +85,7 @@ export function retrieveLexicalPortfolioContext(
   const scopedCandidateChunks = candidateChunks.filter((chunk) => sourceTypes.includes(chunk.sourceType));
 
   const rankedChunks = scopedCandidateChunks
-    .map((chunk) => ({ chunk, score: scoreChunk(chunk, queryTokens, options.query) }))
+    .map((chunk) => ({ chunk, score: scoreChunk(chunk, queryIndex) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score)
     .map(({ chunk, score }) => ({ ...chunk, score }));
@@ -122,28 +138,22 @@ function resolveRetrievalScope(options: RetrieveOptions): {
   };
 }
 
-function scoreChunk(chunk: RetrievalChunk, queryTokens: string[], rawQuery: string): number {
-  const haystack = chunk.searchText.toLowerCase();
-  const title = chunk.sectionTitle.toLowerCase();
-  const projectTitle = chunk.projectTitle.toLowerCase();
-  const chatContext = String(chunk.metadata?.chatContext ?? '').toLowerCase();
-  const keywordMetadata = [
-    ...readStringArray(chunk.metadata?.tags),
-    ...readStringArray(chunk.metadata?.stack),
-    chunk.metadata?.platform,
-    chunk.metadata?.outcome,
-  ].filter(Boolean).join(' ').toLowerCase();
-  const phrase = rawQuery.trim().toLowerCase();
-  const haystackStems = new Set(tokenize(haystack).map(stemToken));
-  const queryBigrams = buildBigrams(tokenize(rawQuery));
-
+function scoreChunk(chunk: RetrievalChunk, queryIndex: QueryIndex): number {
+  const {
+    haystack,
+    haystackStems,
+    title,
+    projectTitle,
+    chatContext,
+    keywordMetadata,
+  } = getSearchableChunk(chunk);
   let score = 0;
 
-  if (phrase && haystack.includes(phrase)) {
+  if (queryIndex.phrase && haystack.includes(queryIndex.phrase)) {
     score += 10;
   }
 
-  queryBigrams.forEach((bigram) => {
+  queryIndex.bigrams.forEach((bigram) => {
     if (haystack.includes(bigram)) {
       score += 5;
     }
@@ -152,7 +162,7 @@ function scoreChunk(chunk: RetrievalChunk, queryTokens: string[], rawQuery: stri
     }
   });
 
-  queryTokens.forEach((token) => {
+  queryIndex.tokens.forEach((token) => {
     const stem = stemToken(token);
     if (projectTitle.includes(token)) {
       score += 7;
@@ -177,6 +187,30 @@ function scoreChunk(chunk: RetrievalChunk, queryTokens: string[], rawQuery: stri
   return score;
 }
 
+function getSearchableChunk(chunk: RetrievalChunk): SearchableChunk {
+  const cachedChunk = searchableChunkCache.get(chunk);
+  if (cachedChunk) {
+    return cachedChunk;
+  }
+
+  const searchableChunk = {
+    haystack: chunk.searchText.toLowerCase(),
+    haystackStems: new Set(tokenize(chunk.searchText).map(stemToken)),
+    title: chunk.sectionTitle.toLowerCase(),
+    projectTitle: chunk.projectTitle.toLowerCase(),
+    chatContext: String(chunk.metadata?.chatContext ?? '').toLowerCase(),
+    keywordMetadata: [
+      ...readStringArray(chunk.metadata?.tags),
+      ...readStringArray(chunk.metadata?.stack),
+      chunk.metadata?.platform,
+      chunk.metadata?.outcome,
+    ].filter(Boolean).join(' ').toLowerCase(),
+  };
+
+  searchableChunkCache.set(chunk, searchableChunk);
+  return searchableChunk;
+}
+
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
@@ -186,6 +220,7 @@ function capChunksByProject(
   limits: { maxChunks: number; maxChunksPerProject: number },
 ): RetrievalChunk[] {
   const counts = new Map<string, number>();
+  const selectedChunks = new Set<RetrievalChunk>();
   const capped: RetrievalChunk[] = [];
 
   chunks.forEach((chunk) => {
@@ -194,16 +229,18 @@ function capChunksByProject(
     }
 
     capped.push(chunk);
+    selectedChunks.add(chunk);
     counts.set(chunk.projectSlug, 1);
   });
 
   chunks.forEach((chunk) => {
     const count = counts.get(chunk.projectSlug) ?? 0;
-    if (capped.includes(chunk) || count >= limits.maxChunksPerProject || capped.length >= limits.maxChunks) {
+    if (selectedChunks.has(chunk) || count >= limits.maxChunksPerProject || capped.length >= limits.maxChunks) {
       return;
     }
 
     capped.push(chunk);
+    selectedChunks.add(chunk);
     counts.set(chunk.projectSlug, count + 1);
   });
 
@@ -246,6 +283,16 @@ function expandQueryTokens(tokens: string[]): string[] {
       ]),
     ),
   ).filter((token) => token.length > 2);
+}
+
+function buildQueryIndex(rawQuery: string): QueryIndex {
+  const rawTokens = tokenize(rawQuery);
+
+  return {
+    phrase: rawQuery.trim().toLowerCase(),
+    tokens: expandQueryTokens(rawTokens),
+    bigrams: buildBigrams(rawTokens),
+  };
 }
 
 function buildBigrams(tokens: string[]): string[] {

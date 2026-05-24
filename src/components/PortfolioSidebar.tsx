@@ -1,6 +1,7 @@
 'use client';
 
 import NextLink from 'next/link';
+import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -54,6 +55,7 @@ const SIDEBAR_MOBILE_CLOSE_BACKGROUND = 'surface.background.gray.moderate';
 const SIDEBAR_TOGGLE_ICON_COLOR = 'interactive.icon.gray.subtle';
 const SIDEBAR_CLOSE_ICON_COLOR = 'surface.icon.gray.normal';
 const SIDEBAR_SECTION_CHEVRON_COLOR = 'surface.icon.gray.subtle';
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'portfolio-sidebar-collapsed';
 const newChatButtonTheme = {
   ...portfolioTheme,
   colors: {
@@ -103,14 +105,29 @@ export function PortfolioSidebar({
   variant = 'desktop',
   onRequestClose,
 }: PortfolioSidebarProps) {
+  const pathname = usePathname();
   const isMobileVariant = variant === 'mobile';
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isChatsExpanded, setIsChatsExpanded] = useState(false);
+  const [isChatsExpanded, setIsChatsExpanded] = useState(recentChats.length > 0);
   const [isPagesExpanded, setIsPagesExpanded] = useState(true);
   const [isOpenContentVisible, setIsOpenContentVisible] = useState(true);
   const collapseTimerRef = useRef<number | null>(null);
   const hasContactPage = pages.some((page) => page.href === '/contact');
   const sidebarPages = pages.filter((page) => page.href !== '/resume');
+
+  useEffect(() => {
+    if (isMobileVariant) {
+      return;
+    }
+
+    setIsCollapsed(window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true');
+  }, [isMobileVariant]);
+
+  useEffect(() => {
+    if (recentChats.length > 0) {
+      setIsChatsExpanded(true);
+    }
+  }, [recentChats.length]);
 
   useEffect(() => {
     return () => {
@@ -127,6 +144,7 @@ export function PortfolioSidebar({
 
     if (isCollapsed) {
       setIsCollapsed(false);
+      window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, 'false');
       window.requestAnimationFrame(() => setIsOpenContentVisible(true));
       return;
     }
@@ -134,6 +152,7 @@ export function PortfolioSidebar({
     setIsOpenContentVisible(false);
     collapseTimerRef.current = window.setTimeout(() => {
       setIsCollapsed(true);
+      window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, 'true');
     }, SIDEBAR_EXIT_DELAY_MS);
   };
 
@@ -329,6 +348,7 @@ export function PortfolioSidebar({
                   <ProjectSidebarCard
                     key={`${project.slug}-${projectIndex}`}
                     project={project}
+                    isActive={pathname === `/projects/${project.slug}`}
                   />
                 ))}
               </Box>
@@ -376,6 +396,7 @@ export function PortfolioSidebar({
                       key={item.href}
                       href={item.href}
                       label={item.label}
+                      isActive={pathname === item.href || (pathname === '/' && item.href === '/about')}
                     />
                   ))}
                 </Box>
@@ -416,14 +437,16 @@ function NewChatButtonTheme({ children }: { children: ReactNode }) {
 
 type ProjectSidebarCardProps = {
   project: ProjectSummary;
+  isActive: boolean;
 };
 
 type SidebarTabLinkProps = {
   href: string;
   label: string;
+  isActive: boolean;
 };
 
-function SidebarTabLink({ href, label }: SidebarTabLinkProps) {
+function SidebarTabLink({ href, label, isActive }: SidebarTabLinkProps) {
   return (
     <AnimateInteractions motionTriggers={['hover']}>
       <Box width="100%">
@@ -440,27 +463,29 @@ function SidebarTabLink({ href, label }: SidebarTabLinkProps) {
             minWidth="0px"
             padding="spacing.3"
             borderRadius="small"
-            backgroundColor="transparent"
+            backgroundColor={isActive ? 'surface.background.primary.subtle' : 'transparent'}
             position="relative"
             overflow="hidden"
           >
-            <Fade motionTriggers={['on-animate-interactions']} type="inout">
-              <Box
-                position="absolute"
-                top="spacing.0"
-                right="spacing.0"
-                bottom="spacing.0"
-                left="spacing.0"
-                backgroundColor="surface.background.primary.subtle"
-              />
-            </Fade>
+            {isActive ? null : (
+              <Fade motionTriggers={['on-animate-interactions']} type="inout">
+                <Box
+                  position="absolute"
+                  top="spacing.0"
+                  right="spacing.0"
+                  bottom="spacing.0"
+                  left="spacing.0"
+                  backgroundColor="surface.background.primary.subtle"
+                />
+              </Fade>
+            )}
             <Box position="relative" zIndex={1} minWidth="0px">
               <Text
                 as="span"
                 variant="body"
                 size="medium"
-                weight="regular"
-                color="surface.text.staticBlack.normal"
+                weight={isActive ? 'semibold' : 'regular'}
+                color={isActive ? 'interactive.text.primary.normal' : 'surface.text.staticBlack.normal'}
                 truncateAfterLines={1}
               >
                 {label}
@@ -473,7 +498,7 @@ function SidebarTabLink({ href, label }: SidebarTabLinkProps) {
   );
 }
 
-function ProjectSidebarCard({ project }: ProjectSidebarCardProps) {
+function ProjectSidebarCard({ project, isActive }: ProjectSidebarCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const projectTags = project.tags ?? [];
 
@@ -487,9 +512,13 @@ function ProjectSidebarCard({ project }: ProjectSidebarCardProps) {
             style={{ display: 'block', textDecoration: 'none', width: '100%' }}
           >
             <Box
-              backgroundColor={isHovered ? 'surface.background.primary.subtle' : 'transparent'}
-              borderColor="surface.border.primary.muted"
-              borderWidth={isHovered ? 'none' : 'thin'}
+              backgroundColor={
+                isActive || isHovered ? 'surface.background.primary.subtle' : 'transparent'
+              }
+              borderColor={
+                isActive ? 'surface.border.primary.normal' : 'surface.border.primary.muted'
+              }
+              borderWidth="thin"
               borderStyle="solid"
               borderRadius="small"
               padding="spacing.3"
@@ -506,8 +535,8 @@ function ProjectSidebarCard({ project }: ProjectSidebarCardProps) {
               <Text
                 as="span"
                 size="medium"
-                weight="regular"
-                color="surface.text.staticBlack.normal"
+                weight={isActive ? 'semibold' : 'regular'}
+                color={isActive ? 'interactive.text.primary.normal' : 'surface.text.staticBlack.normal'}
                 truncateAfterLines={1}
               >
                 {project.title}

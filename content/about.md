@@ -17,60 +17,55 @@ tags:
 
 - Jatin Davis is an architect turned product designer who works at the intersection of product thinking, interaction craft, AI coding agents, user behavior, psychology, and business outcomes.
 
-- His career moved from architecture into product design because both fields reward systems thinking: understanding constraints, shaping flows, and making complex environments easier for people to use.
-
-- At Maruti Suzuki, Jatin applied meticulous interface craft to in-vehicle infotainment systems. At Cardtree Technologies and Double.ai, he now works on AI twin and voice-agent experiences, translating founder-level product direction into usable product surfaces with engineering teams.
+- At Maruti Suzuki, Jatin applied meticulous interface craft to in-vehicle infotainment systems. At Cardtree Technologies, Double.ai, he now works on AI twin and voice-agent experiences, translating founder-level product direction into usable product surfaces with engineering teams.
 
 - He is also a builder beyond client or employer work. He designed and launched Quilo, an AI prompt-library Chrome extension that reached 600+ users, and built Formula 1 Design, a YouTube channel that crossed 1M+ views by understanding audience behavior.
 
-- These projects reflect Jatin's core belief: design should combine craft, clarity, delight, and business usefulness. A product should feel good, solve a real user problem, and create measurable momentum for the organization behind it.
 
-## Summary
+## How I Think
 
-### Product Craft
+### Users/Target Audience/stakeholders are key
 
-- Designs interfaces with attention to visual hierarchy, interaction details, motion, and system constraints.
-- Applies the same craft mindset across automotive HMI, AI products, Chrome extensions, and portfolio experiences.
+- Users pay for your product. If we do not provide them value, they will not pay.
+- I have learned about this in my work here at Double.ai. Getting users/customes is the tricky part.
 
-### Product Thinking
+### Identifying their real problems and pain-points
 
-- Connects user problems to business outcomes instead of treating UI polish as the only goal.
-- Uses research signals, product framing, PostHog recordings, launch feedback, and audience behavior to shape decisions.
+- Users or businesses will not pay until we solve their real problems.
+- We can either solver their real problems or provide them with a superior solution to their problem. 
 
-### Builder Mindset
+### Technology is backbone
 
-- Uses AI coding agents, prototyping, and shipping workflows to turn ideas into working products.
-- Has shipped Quilo to 600+ users and built a Formula 1 design audience with 1M+ views.
+- Every new technology bring change and oppertunities. This is what pushes the envelop.
+- Technology advancements will create superior solutions that will make previous solutions obsolete.
 
-## Design Philosophy
 
-- Start with the user problem, but keep the business model in view. A product needs both user value and a reason for the business to keep investing in it.
-- Treat craft as a trust signal. Clean hierarchy, clear states, and polished interactions make complex systems feel understandable.
-- Prototype early enough to expose real constraints. For AI products especially, the design needs to account for model capability, engineering feasibility, and edge cases.
-- Watch behavior, not only stated preference. Usage recordings, audience response, and launch signals often reveal what users actually value.
-- Design as a builder, not only as a handoff function. The goal is to move from concept to usable product surfaces that engineering can build and users can adopt.
+## Product Design Problem Solving Process
 
-## What I Worked On
+### Users/Target Audience 
 
-- AI twin and voice-agent experiences for Double.ai.
-- End-to-end product flows including onboarding, analytics, pricing and billing, knowledge base, chat bar, website widget, referrals, and voice configuration.
-- Automotive infotainment and in-vehicle HMI work for Maruti Suzuki SmartPlay Pro X.
-- Quilo, a Chrome extension for saving, organizing, and reusing AI prompts.
-- Formula 1 Design, a YouTube channel built around motorsport design storytelling.
-- Portfolio chat, content, and retrieval experiences using AI coding agents.
+- A indepth understading of the user/target audience we are focusing on.
+- Every user will have different needs and wants which we have to address.
 
-## Skills and Tools
+### Problem Identification/user pain-points
 
-- Product design, UX research, interaction design, visual design, motion design, and design systems.
-- Figma, prototyping, product benchmarking, user-flow mapping, and handoff-ready product screens.
-- AI product design, voice-agent UX, prompt-library workflows, and AI coding-agent assisted product building.
-- PostHog usage review, content strategy, audience learning, and product positioning.
+- We should strive to solve the real problems that users face. We have to identfy which feature/ Problem is best for the users and the business.
+- If we solve the wrong problem then it won't matter how well we design or build it. It won't be a success.
 
-## Interests
+### Map persona/create user stories 
 
-- Running
-- Formula 1 and motorsports
-- Car enthusiast
-- 80s classic rock
-- YouTuber
-- LinkedIn
+- Mapping the jobs,goals, expectations, needs and wants that the user wants to get done.
+
+### Benchmarking/ competitior analysis
+
+- Understanding the patterns in benchmarking to aid in our design.
+
+### Creating userflows and mapping edge cases
+
+- Mapping the user flow and edge case for a solution to address all the user needs and expectations.
+
+### High fildelity prototypes and AI built prototypes
+
+- Using Ai to build high fidelity prototypes that can be shipped.
+
+

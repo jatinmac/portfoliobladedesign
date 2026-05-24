@@ -9,13 +9,29 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', 'Inter Fallback Arial', Arial, sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, currentColor 22%, transparent) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, currentColor 28%, transparent);
 }
 
 *:focus-visible {
   outline-offset: 2px;
   transition: outline-offset 120ms ease;
-}
-
-[data-motion] {
-  will-change: transform, opacity;
 }

@@ -7,8 +7,8 @@ import {
   Badge,
   Box,
   Button,
+  Divider,
   Heading,
-  Move,
   Text,
 } from '../../components/blade/PortfolioPrimitives';
 import { getContentDrivenPage, getContentPageHeader } from '../../lib/content/content-loader';
@@ -43,14 +43,21 @@ export default async function ProjectsPage() {
         display="flex"
         flexDirection="column"
         gap="spacing.4"
-        padding={{ base: 'spacing.4', m: 'spacing.5' }}
-        borderRadius="medium"
-        backgroundColor="surface.background.primary.subtle"
       >
-        <Heading as="h2" size="medium" color="surface.text.gray.normal">
-          Case studies
-        </Heading>
-        <Box display="flex" flexWrap="wrap" gap="spacing.5">
+        <Box display="flex" flexDirection="column" gap="spacing.2" maxWidth="720px">
+          <Heading as="h2" size="medium" color="surface.text.gray.normal">
+            Case studies
+          </Heading>
+          <Text size="small" color="surface.text.gray.muted">
+            Product work organized as outcomes, systems, and shipped surfaces.
+          </Text>
+        </Box>
+        <Box
+          display="grid"
+          gridTemplateColumns={{ base: '1fr', m: 'repeat(2, minmax(0, 1fr))' }}
+          alignItems="stretch"
+          gap="spacing.5"
+        >
           {projects.map((project) => (
             <ProjectCard
               key={project.slug}
@@ -71,76 +78,117 @@ type ProjectCardProps = {
 
 function ProjectCard({ project, image }: ProjectCardProps) {
   return (
-    <Move motionTriggers={['in-view']} type="in">
+    <Box
+      as="section"
+      display="flex"
+      flexDirection="column"
+      minWidth="0px"
+      height="100%"
+      backgroundColor="surface.background.gray.intense"
+      borderRadius="medium"
+      overflow="hidden"
+      elevation="lowRaised"
+    >
       <Box
-        as="section"
+        flex={{ base: '0 0 220px', m: '1 1 280px' }}
+        minHeight={{ base: '220px', m: '280px' }}
+        backgroundColor="surface.background.primary.subtle"
+        position="relative"
+        overflow="hidden"
+      >
+        {image ? (
+          <Image
+            src={image}
+            alt=""
+            fill
+            placeholder="blur"
+            sizes="(min-width: 768px) 50vw, 100vw"
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+          />
+        ) : null}
+      </Box>
+
+      <Box
         display="flex"
         flexDirection="column"
-        flexBasis={{ base: '100%', m: 'calc(50% - 10px)' }}
-        minWidth={{ base: '100%', m: '300px' }}
-        backgroundColor="surface.background.gray.intense"
-        borderRadius="medium"
-        overflow="hidden"
-        elevation="lowRaised"
+        gap="spacing.5"
+        padding="spacing.5"
+        flex="0 0 auto"
       >
-        <Box
-          height={{ base: '240px', m: '292px' }}
-          backgroundColor="surface.background.primary.subtle"
-          position="relative"
-          overflow="hidden"
-        >
-          {image ? (
-            <Image
-              src={image}
-              alt=""
-              fill
-              placeholder="blur"
-              sizes="(min-width: 768px) 50vw, 100vw"
-              style={{ objectFit: 'contain' }}
-            />
-          ) : null}
+        <Box display="flex" flexDirection="column" gap="spacing.3">
+          <Box display="flex" flexWrap="wrap" gap="spacing.2">
+            <Badge color="primary" size="small">
+              {project.role}
+            </Badge>
+            <Badge color="primary" emphasis="subtle" size="small">
+              {project.timeline}
+            </Badge>
+          </Box>
+
+          <Box display="flex" flexDirection="column" gap="spacing.2">
+            <Heading as="h3" size="medium">
+              {project.title}
+            </Heading>
+            <Text color="surface.text.gray.muted" truncateAfterLines={4}>
+              {project.summary}
+            </Text>
+          </Box>
         </Box>
 
         <Box
-          display="flex"
-          flexDirection="column"
-          gap="spacing.4"
-          padding="spacing.5"
-          flex="1"
+          display="grid"
+          gridTemplateColumns={{ base: '1fr', s: 'repeat(2, minmax(0, 1fr))' }}
+          gap="spacing.3"
         >
-          <Box display="flex" flexDirection="column" gap="spacing.3">
-            <Box display="flex" flexWrap="wrap" gap="spacing.2">
-              <Badge color="primary" size="small">
-                {project.role}
-              </Badge>
-              <Badge color="primary" emphasis="subtle" size="small">
-                {project.timeline}
-              </Badge>
-            </Box>
+          <ProjectSignal label="Platform" value={project.platform ?? project.stack?.[0] ?? 'Product'} />
+          <ProjectSignal label="Outcome" value={project.outcome ?? 'Case study'} />
+        </Box>
 
-            <Box display="flex" flexDirection="column" gap="spacing.2">
-              <Heading as="h3" size="medium">
-                {project.title}
-              </Heading>
-              <Text color="surface.text.gray.muted" truncateAfterLines={4}>
-                {project.summary}
-              </Text>
-            </Box>
+        {project.tags?.length ? (
+          <Box display="flex" flexWrap="wrap" gap="spacing.2">
+            {project.tags.slice(0, 3).map((tag) => (
+              <Badge key={tag} color="neutral" emphasis="subtle" size="small">
+                {tag}
+              </Badge>
+            ))}
           </Box>
+        ) : null}
 
-          <Box marginTop="auto">
-            <Button
-              href={`/projects/${project.slug}`}
-              variant="secondary"
-              icon={ArrowRightIcon}
-              iconPosition="right"
-              isFullWidth
-            >
-              Open case study
-            </Button>
-          </Box>
+        <Divider />
+
+        <Box marginTop="auto">
+          <Button
+            href={`/projects/${project.slug}`}
+            variant="secondary"
+            icon={ArrowRightIcon}
+            iconPosition="right"
+            isFullWidth
+          >
+            Open case study
+          </Button>
         </Box>
       </Box>
-    </Move>
+    </Box>
+  );
+}
+
+function ProjectSignal({ label, value }: { label: string; value: string }) {
+  return (
+    <Box
+      display="flex"
+      flexDirection="column"
+      gap="spacing.1"
+      padding="spacing.3"
+      borderRadius="medium"
+      backgroundColor="surface.background.gray.subtle"
+      minWidth="0px"
+    >
+      <Text variant="caption" size="small" weight="semibold" color="interactive.text.primary.normal">
+        {label}
+      </Text>
+      <Text size="small" color="surface.text.gray.muted" truncateAfterLines={2}>
+        {value}
+      </Text>
+    </Box>
   );
 }
