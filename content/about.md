@@ -3,8 +3,8 @@ page: about
 name: Jatin Davis
 title: Jatin Davis Portfolio
 headline: Jatin Davis
-description: Designing for users and business outcome. Solving user problems is vital for business success.
-homeHeadline: As a product designer, I believe that Value is everything and what we work towards.
+description: Product designer at the intersection of UX craft, business outcomes, and AI-driven workflows. Solving real problems, writing clean specs, and avoiding design-by-committee.
+homeHeadline: I believe that value is what ultimately matters and what we work towards. This value is what the world recognizes and rewards.
 tags:
   - Product builder
   - Design Builder
@@ -15,57 +15,59 @@ tags:
 
 ## About
 
-- Jatin Davis is an architect turned product designer who works at the intersection of product thinking, interaction craft, AI coding agents, user behavior, psychology, and business outcomes.
+- Jatin Davis is an architect turned product designer who works at the intersection of product thinking, interaction craft, AI coding agents, user behavior, psychology, and business outcomes. He swapped designing physical brick-and-mortar structures for digital screens because undoing a design mistake in Figma is significantly easier than on a construction site.
 
-- At Maruti Suzuki, Jatin applied meticulous interface craft to in-vehicle infotainment systems. At Cardtree Technologies, Double.ai, he now works on AI twin and voice-agent experiences, translating founder-level product direction into usable product surfaces with engineering teams.
+- At Maruti Suzuki, Jatin applied meticulous interface craft to in-vehicle infotainment systems. At Cardtree Technologies / Double.ai, he now works on AI twin and voice-agent experiences, translating founder-level product direction into usable product surfaces with engineering teams.
 
 - He is also a builder beyond client or employer work. He designed and launched Quilo, an AI prompt-library Chrome extension that reached 600+ users, and built Formula 1 Design, a YouTube channel that crossed 1M+ views by understanding audience behavior.
 
 
 ## How I Think
 
-### Users/Target Audience/stakeholders are key
+### Users are the ultimate filter
 
-- Users pay for your product. If we do not provide them value, they will not pay.
-- I have learned about this in my work here at Double.ai. Getting users/customes is the tricky part.
+- Pretty interfaces can't save a broken value proposition. If a design doesn't provide real value, users will leave (and no amount of gradients will stop them).
+- Jatin has seen this up close through Double.ai product work, where earning user attention is the hard part and every screen has to justify its place.
 
-### Identifying their real problems and pain-points
+### Solve real friction, not assumptions
 
-- Users or businesses will not pay until we solve their real problems.
-- We can either solver their real problems or provide them with a superior solution to their problem. 
+- True solutions come from addressing core bottlenecks, not surface symptoms. Designing the wrong feature beautifully is just highly-polished waste.
+- The goal is to solve real user or business friction, or offer a meaningfully better way to get the same job done.
 
-### Technology is backbone
+### Technology is a lever for scale
 
-- Every new technology bring change and oppertunities. This is what pushes the envelop.
-- Technology advancements will create superior solutions that will make previous solutions obsolete.
+- Every new tech cycle brings new interaction patterns. Jatin leverages AI workflows to build and iterate at speed, keeping the human experience at the center.
+- Technology matters most when it turns a better idea into something faster, clearer, and easier to use.
 
 
 ## Product Design Problem Solving Process
 
-### Users/Target Audience 
+### Audience Obsession
 
-- A indepth understading of the user/target audience we are focusing on.
-- Every user will have different needs and wants which we have to address.
+- Build a deep understanding of the user, target audience, and stakeholders before deciding what the interface should do.
+- Different users bring different goals, expectations, and constraints, so the design work starts by taking those realities seriously.
 
-### Problem Identification/user pain-points
+### The 'What Hurts?' Phase
 
-- We should strive to solve the real problems that users face. We have to identfy which feature/ Problem is best for the users and the business.
-- If we solve the wrong problem then it won't matter how well we design or build it. It won't be a success.
+- Identify the feature, workflow, or product problem that matters most for both users and the business.
+- If the team solves the wrong problem, it will not matter how polished the interface is. It is still the wrong problem, just wearing nicer shoes.
 
-### Map persona/create user stories 
+### Edge Case Cartography
 
-- Mapping the jobs,goals, expectations, needs and wants that the user wants to get done.
+- Map jobs, goals, expectations, user stories, and the awkward edge cases that appear five minutes before handoff.
+- The strongest flows account for what users want, what the system can support, and what engineers need to build without guesswork.
 
-### Benchmarking/ competitior analysis
+### Competitive Benchmarking
 
-- Understanding the patterns in benchmarking to aid in our design.
+- Study competitor patterns, category norms, and product expectations so the design can borrow what works and challenge what does not.
+- Benchmarking is useful when it sharpens judgment, not when it turns the product into a clone with a different button radius.
 
-### Creating userflows and mapping edge cases
+### Flow Mapping
 
-- Mapping the user flow and edge case for a solution to address all the user needs and expectations.
+- Create user flows that connect intent, action, feedback, and recovery states across the full product experience.
+- Good flows reduce ambiguity before it becomes a meeting thread with 37 comments.
 
-### High fildelity prototypes and AI built prototypes
+### Shipped AI-Built Prototypes
 
-- Using Ai to build high fidelity prototypes that can be shipped.
-
-
+- Use AI to build high-fidelity prototypes that make product decisions tangible, testable, and closer to shippable.
+- The aim is not prototype theater. It is faster learning, better handoff, and fewer surprises in implementation.

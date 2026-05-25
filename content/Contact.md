@@ -1,7 +1,7 @@
 ---
 page: contact
 title: Contact Jatin Davis.
-description: Use these repository-owned contact links for portfolio follow-up.
+description: Direct channels for collaboration, hiring queries, or design discussions. No spam, no design agency newsletters - just straight-to-the-point chat.
 sectionTitle: Open channels
 ---
 

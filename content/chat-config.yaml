@@ -1,21 +1,23 @@
 placeholderSuggestions:
-  - Ask about Jatin's resume?
-  - Ask about Double AI?
-  - Ask about work in Maruti Suzuki?
-  - Ask about interests?
+  - Tell me about Jatin's AI product design work at Double.ai.
+  - What did Jatin do at Maruti Suzuki?
+  - Did jatin's youtube channel reach 1mn+ views?
+  - Why would an architect transition to product design? Did a brick fall on his head?
+  - Does Jatin have a resume I can download?
 
 
 followUps:
   project:
-    - What tradeoffs shaped this project?
-    - What evidence supports the design decisions?
-    - How would you summarize the outcome?
+    - What design tradeoffs did Jatin have to fight for?
+    - What evidence supports these design choices?
+    - How would you summarize the business value?
   designSystem:
     - Which project best shows design system governance?
-    - How did Jatin support adoption?
-    - What was the contribution model?
+    - How did Jatin support design system adoption?
+    - Where is the evidence that Jatin actually gets along with engineers?
   default:
-    - Which project should I read first?
-    - What does Jatin do best?
+    - What design tradeoffs did Jatin have to fight for?
+    - What evidence supports these design choices?
+    - How did Jatin support design system adoption?
+    - Where is the evidence that Jatin actually gets along with engineers?
     - How does the portfolio show product thinking?
-    - What evidence shows Jatin can work closely with engineers?
