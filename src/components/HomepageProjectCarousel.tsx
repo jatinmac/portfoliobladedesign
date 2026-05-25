@@ -93,7 +93,7 @@ export function HomepageProjectCarousel({ projects }: HomepageProjectCarouselPro
                       fill
                       placeholder="blur"
                       sizes="(min-width: 768px) 190px, 82vw"
-                      style={{ objectFit: 'cover' }}
+                      style={{ objectFit: 'contain' }}
                     />
                   </Box>
                 </a>
