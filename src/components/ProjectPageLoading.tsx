@@ -24,7 +24,9 @@ export function ProjectPageLoading() {
             borderRadius="large"
           >
             <Spinner accessibilityLabel="Loading project" />
-            <Text color="surface.text.gray.muted">Loading case study...</Text>
+            <Text color="surface.text.gray.muted">
+              Retrieving case study... hold tight while we polish the pixels!
+            </Text>
           </Box>
         </Scale>
       </Fade>
