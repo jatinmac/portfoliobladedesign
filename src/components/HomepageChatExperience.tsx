@@ -55,7 +55,7 @@ export function HomepageChatExperience({
 
   return (
     <Box
-      as="aside"
+      as="main"
       height="100%"
       backgroundColor="surface.background.gray.intense"
       minWidth="0px"

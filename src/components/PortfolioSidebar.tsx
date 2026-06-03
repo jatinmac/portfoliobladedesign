@@ -396,7 +396,7 @@ export function PortfolioSidebar({
                       key={item.href}
                       href={item.href}
                       label={item.label}
-                      isActive={pathname === item.href || (pathname === '/' && item.href === '/about')}
+                      isActive={pathname === item.href}
                     />
                   ))}
                 </Box>
