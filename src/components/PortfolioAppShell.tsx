@@ -14,9 +14,7 @@ import {
 import type { NavigationItem, ProjectSummary } from '../lib/content/types';
 import {
   Box,
-  CloseIcon,
   IconButton,
-  MessageSquareIcon,
   SidebarIcon,
   Text,
 } from './blade/PortfolioPrimitives';
@@ -60,10 +58,8 @@ export function PortfolioAppShell({
   const [activeChatId, setActiveChatId] = useState('current');
   const [recentChats, setRecentChats] = useState<RecentSidebarChat[]>([]);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
-  const isMobileViewport = useIsMobileViewport();
   const pageTitle = getPageTitle(pathname);
-  const shouldUseSplitWorkspace = isSplitWorkspaceRoute(pathname, pages);
+  const isChatHome = pathname === '/';
 
   useEffect(() => {
     const storedRecentChats = parseRecentChats(
@@ -85,12 +81,10 @@ export function PortfolioAppShell({
 
   useEffect(() => {
     setIsMobileSidebarOpen(false);
-    setIsMobileChatOpen(false);
   }, [pathname]);
 
   const handleNewChat = useCallback(() => {
     setIsMobileSidebarOpen(false);
-    setIsMobileChatOpen(false);
     setActiveChatId(createChatSessionId());
     if (pathname !== '/') {
       router.push('/');
@@ -100,7 +94,6 @@ export function PortfolioAppShell({
   const handleSelectChat = useCallback(
     (chatId: string) => {
       setIsMobileSidebarOpen(false);
-      setIsMobileChatOpen(false);
       setActiveChatId(chatId);
       if (pathname !== '/') {
         router.push('/');
@@ -138,14 +131,10 @@ export function PortfolioAppShell({
         flexDirection={{ base: 'column', m: 'row' }}
         minWidth="0px"
       >
-        {isMobileSidebarOpen || isMobileChatOpen ? null : (
+        {isMobileSidebarOpen ? null : (
           <MobileSidebarTopBar
             pageTitle={pageTitle}
-            pathname={pathname}
             onToggle={() => setIsMobileSidebarOpen(true)}
-            showChatToggle={shouldUseSplitWorkspace}
-            isChatOpen={isMobileChatOpen}
-            onToggleChat={() => setIsMobileChatOpen((isOpen) => !isOpen)}
           />
         )}
         <Box
@@ -171,70 +160,6 @@ export function PortfolioAppShell({
           </Box>
           <Box flex="1" minWidth="0px" height="100%" backgroundColor="overlay.background.subtle" />
         </Box>
-        {shouldUseSplitWorkspace ? (
-          <Box
-            position="fixed"
-            top="spacing.0"
-            right="spacing.0"
-            bottom="spacing.0"
-            left="spacing.0"
-            zIndex={7}
-            display={{ base: isMobileChatOpen ? 'flex' : 'none', m: 'none' }}
-            flexDirection="column"
-            backgroundColor="surface.background.gray.subtle"
-          >
-            <Box
-              as="header"
-              display="flex"
-              alignItems="center"
-              width="100%"
-              height={MOBILE_TOP_BAR_HEIGHT}
-              padding={MOBILE_TOP_BAR_PADDING}
-              backgroundColor={MOBILE_TOP_BAR_BACKGROUND}
-              flexShrink={0}
-              gap="spacing.3"
-            >
-              <Box minWidth="0px" flex="1">
-                <Text
-                  as="span"
-                  size="medium"
-                  weight="semibold"
-                  color="surface.text.gray.normal"
-                  truncateAfterLines={1}
-                >
-                  AI Chat
-                </Text>
-              </Box>
-              <Box
-                width="36px"
-                height="36px"
-                backgroundColor={MOBILE_TOP_BAR_BUTTON_BACKGROUND}
-                borderRadius="medium"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                overflow="hidden"
-              >
-                <IconButton
-                  icon={MobileChatCloseIcon}
-                  accessibilityLabel="Close chat"
-                  size="small"
-                  emphasis="subtle"
-                  onClick={() => setIsMobileChatOpen(false)}
-                />
-              </Box>
-            </Box>
-            <Box flex="1" minHeight="0px" minWidth="0px">
-              {isMobileChatOpen ? (
-                <HomepageChatExperience
-                  placeholderSuggestions={placeholderSuggestions}
-                  projects={projects}
-                  emptyStateHeading={emptyStateHeading}
-                />
-              ) : null}
-            </Box>
-          </Box>
-        ) : null}
         <Box
           position={{ base: 'relative', m: 'sticky' }}
           top={{ base: 'initial', m: 'spacing.0' }}
@@ -253,41 +178,19 @@ export function PortfolioAppShell({
         </Box>
         <Box flex="1" minWidth="0px" width="100%">
           {pathname === '/' ? null : <ScrollProgressBar />}
-          {shouldUseSplitWorkspace ? (
+          {isChatHome ? (
             <Box
-              display="grid"
-              gridTemplateColumns={{
-                base: 'minmax(0, 1fr)',
-                l: 'minmax(0, 1fr) minmax(380px, 500px)',
-                xl: 'minmax(0, 1fr) minmax(420px, 520px)',
-              }}
+              height={{ base: 'calc(100svh - 68px)', m: '100svh' }}
               minHeight={{ base: 'calc(100svh - 68px)', m: '100svh' }}
               minWidth="0px"
               width="100%"
               backgroundColor="surface.background.gray.subtle"
             >
-              <Box minWidth="0px">
-                <PageTransition>{children}</PageTransition>
-              </Box>
-              <Box
-                display={{ base: 'none', m: 'block' }}
-                borderLeftColor="surface.border.gray.subtle"
-                borderLeftStyle="solid"
-                borderLeftWidth={{ base: 'none', l: 'thin' }}
-                height={{ base: 'calc(100svh - 68px)', m: '100svh' }}
-                minHeight={{ base: '560px', l: '0px' }}
-                minWidth="0px"
-                position={{ base: 'relative', l: 'sticky' }}
-                top={{ base: 'initial', l: 'spacing.0' }}
-              >
-                {isMobileViewport ? null : (
-                  <HomepageChatExperience
-                    placeholderSuggestions={placeholderSuggestions}
-                    projects={projects}
-                    emptyStateHeading={emptyStateHeading}
-                  />
-                )}
-              </Box>
+              <HomepageChatExperience
+                placeholderSuggestions={placeholderSuggestions}
+                projects={projects}
+                emptyStateHeading={emptyStateHeading}
+              />
             </Box>
           ) : (
             <PageTransition>{children}</PageTransition>
@@ -300,20 +203,12 @@ export function PortfolioAppShell({
 
 type MobileSidebarTopBarProps = {
   pageTitle: string;
-  pathname: string;
   onToggle: () => void;
-  showChatToggle: boolean;
-  isChatOpen: boolean;
-  onToggleChat: () => void;
 };
 
 function MobileSidebarTopBar({
   pageTitle,
-  pathname,
   onToggle,
-  showChatToggle,
-  isChatOpen,
-  onToggleChat,
 }: MobileSidebarTopBarProps) {
   return (
     <Box
@@ -357,26 +252,6 @@ function MobileSidebarTopBar({
           {pageTitle}
         </Text>
       </Box>
-      {showChatToggle ? (
-        <Box
-          width="36px"
-          height="36px"
-          backgroundColor={MOBILE_TOP_BAR_BUTTON_BACKGROUND}
-          borderRadius="medium"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          overflow="hidden"
-        >
-          <IconButton
-            icon={MobileChatToggleIcon}
-            accessibilityLabel={isChatOpen ? 'Close chat' : 'Open chat'}
-            size="small"
-            emphasis="subtle"
-            onClick={onToggleChat}
-          />
-        </Box>
-      ) : null}
     </Box>
   );
 }
@@ -387,14 +262,6 @@ type MobileSidebarToggleIconProps = {
 
 function MobileSidebarToggleIcon({ size }: MobileSidebarToggleIconProps) {
   return <SidebarIcon size={size} color={MOBILE_TOP_BAR_ICON_COLOR} />;
-}
-
-function MobileChatToggleIcon({ size }: MobileSidebarToggleIconProps) {
-  return <MessageSquareIcon size={size} color={MOBILE_TOP_BAR_ICON_COLOR} />;
-}
-
-function MobileChatCloseIcon({ size }: MobileSidebarToggleIconProps) {
-  return <CloseIcon size={size} color={MOBILE_TOP_BAR_ICON_COLOR} />;
 }
 
 export function usePortfolioShell() {
@@ -447,27 +314,9 @@ function createChatSessionId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
-function useIsMobileViewport(): boolean {
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 767px)');
-    const updateMobileViewport = () => setIsMobileViewport(mediaQuery.matches);
-
-    updateMobileViewport();
-    mediaQuery.addEventListener('change', updateMobileViewport);
-
-    return () => {
-      mediaQuery.removeEventListener('change', updateMobileViewport);
-    };
-  }, []);
-
-  return isMobileViewport;
-}
-
 function getPageTitle(pathname: string): string {
   if (pathname === '/') {
-    return 'About';
+    return 'AI Chat';
   }
 
   if (pathname === '/about') {
@@ -487,16 +336,4 @@ function getPageTitle(pathname: string): string {
   }
 
   return 'Portfolio';
-}
-
-function isSplitWorkspaceRoute(pathname: string, pages: NavigationItem[]): boolean {
-  if (pathname === '/') {
-    return true;
-  }
-
-  if (pathname.startsWith('/projects/')) {
-    return true;
-  }
-
-  return pages.some((page) => page.href === pathname);
 }
